@@ -1,0 +1,10 @@
+pub mod appearance;
+pub mod system;
+pub mod audio;
+pub mod index;
+pub mod bluetooth;
+pub mod network;
+pub mod notifications;
+pub mod about;
+pub mod quickshell;
+pub mod scripts;

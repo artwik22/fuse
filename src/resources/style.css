@@ -1,0 +1,1911 @@
+/* ====================================================================
+   NAUTILUS CLONE - Native Libadwaita Styling
+   Matches GNOME Files (Nautilus) appearance
+   ==================================================================== */
+
+/* ===== Color Definitions ===== */
+/* Dynamic colors injected by app.rs */
+/* @define-color window_bg_color #242424; */
+/* @define-color window_fg_color #ffffff; */
+/* @define-color headerbar_bg_color #303030; */
+/* @define-color headerbar_fg_color #ffffff; */
+/* @define-color card_bg_color #383838; */
+/* @define-color card_fg_color #ffffff; */
+/* @define-color accent_bg_color #3584e4; */
+/* @define-color accent_color #3584e4; */
+/* @define-color view_bg_color #1e1e1e; */
+/* @define-color sidebar_bg_color #2a2a2a; */
+
+/* ===== Animations ===== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+        /* Reset transform to prevent layout issues */
+    }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.02);
+    }
+}
+
+/* ===== Window ===== */
+window {
+    background-color: @window_bg_color;
+    color: @window_fg_color;
+    animation: fadeIn 200ms ease-out;
+    min-width: 0;
+    min-height: 0;
+}
+
+window.background {
+    background-color: @window_bg_color;
+    animation: fadeIn 200ms ease-out;
+    min-width: 0;
+    min-height: 0;
+}
+
+/* ===== Navigation Sidebar ===== */
+.navigation-sidebar {
+    background-color: transparent;
+    padding: 4px;
+}
+
+.navigation-sidebar row {
+    border-radius: 6px;
+    margin: 2px 0;
+    min-height: 36px;
+    transition: background-color 200ms ease, transform 150ms ease;
+}
+
+.navigation-sidebar row:selected {
+    background-color: alpha(@accent_bg_color, 0.3);
+    color: @window_fg_color;
+}
+
+.navigation-sidebar row:selected label {
+    color: @window_fg_color;
+    font-weight: 500;
+}
+
+.navigation-sidebar row:hover:not(:selected) {
+    background-color: alpha(currentColor, 0.1);
+    transform: translateX(4px);
+}
+
+.navigation-sidebar row:active {
+    background-color: alpha(currentColor, 0.2);
+    transform: translateX(2px);
+}
+
+.navigation-sidebar row:disabled {
+    opacity: 0.5;
+}
+
+/* Fix sidebar background when window is out of focus */
+navigation-split-view>sidebar {
+    background-color: @sidebar_bg_color;
+    border-right: none;
+}
+
+navigation-split-view>sidebar:backdrop {
+    background-color: @sidebar_bg_color;
+}
+
+/* Sidebar container styling */
+.sidebar-container {
+    background-color: @sidebar_bg_color;
+}
+
+.sidebar-container:backdrop {
+    background-color: @sidebar_bg_color;
+}
+
+/* ScrolledWindow inside sidebar */
+.sidebar-container scrolledwindow {
+    background-color: @sidebar_bg_color;
+}
+
+.sidebar-container scrolledwindow:backdrop {
+    background-color: @sidebar_bg_color;
+}
+
+/* NavigationPage backdrop */
+navigation-page {
+    background-color: @sidebar_bg_color;
+}
+
+navigation-page:backdrop {
+    background-color: @sidebar_bg_color;
+}
+
+/* Ensure sidebar content maintains background */
+navigation-split-view>sidebar>navigation-page {
+    background-color: @sidebar_bg_color;
+}
+
+navigation-split-view>sidebar>navigation-page:backdrop {
+    background-color: @sidebar_bg_color;
+}
+
+.sidebar-row {
+    min-height: 36px;
+}
+
+.sidebar-icon {
+    color: @accent_color;
+    opacity: 0.9;
+    margin-right: 8px;
+}
+
+.navigation-sidebar row:selected .sidebar-icon {
+    opacity: 1.0;
+    color: @accent_color;
+}
+
+.navigation-sidebar row:disabled .sidebar-icon {
+    opacity: 0.4;
+}
+
+/* Hide separators - they appear as unnamed bars */
+separator {
+    opacity: 0;
+    min-height: 0;
+    margin: 0;
+    background: none;
+    border: none;
+}
+
+.navigation-sidebar separator {
+    opacity: 0;
+    min-height: 0;
+    margin: 0;
+    background: none;
+    border: none;
+}
+
+/* Ensure labels in sidebar have proper color */
+.sidebar-container label {
+    color: @window_fg_color;
+}
+
+.sidebar-container label:backdrop {
+    color: @window_fg_color;
+}
+
+/* Sidebar styling for StackSwitcher (used in fuse) */
+.sidebar {
+    background-color: @sidebar_bg_color;
+    border-right: none;
+    padding-top: 0px;
+    padding-bottom: 0px;
+}
+
+/* Custom sidebar ListBox */
+.sidebar-listbox {
+    background-color: transparent;
+    padding: 4px;
+    min-width: 0;
+}
+
+.sidebar-listbox row {
+    min-width: 0;
+}
+
+.sidebar-listbox row {
+    border-radius: 6px;
+    margin: 2px 0;
+    min-height: 36px;
+    transition: background-color 200ms ease, transform 150ms ease;
+}
+
+.sidebar-listbox row:selected {
+    background-color: alpha(@accent_bg_color, 0.3);
+    color: @window_fg_color;
+}
+
+.sidebar-listbox row:selected label {
+    color: @window_fg_color;
+    font-weight: 500;
+}
+
+.sidebar-listbox row:hover:not(:selected) {
+    background-color: alpha(currentColor, 0.1);
+    transform: translateX(2px);
+}
+
+.sidebar-listbox row:active {
+    background-color: alpha(currentColor, 0.2);
+    transform: translateX(1px);
+}
+
+.sidebar-listbox row:disabled {
+    opacity: 0.5;
+}
+
+.sidebar-listbox separator {
+    opacity: 0.3;
+    background-color: alpha(currentColor, 0.2);
+    min-height: 1px;
+    margin: 8px 12px;
+}
+
+/* Wiersze-separatory: bez hover/active, zachowaj tylko cienką linię */
+.sidebar-listbox row.sidebar-separator {
+    background-color: transparent;
+    min-height: 1px;
+    margin: 0;
+    border-radius: 0;
+    transition: none;
+}
+
+.sidebar-listbox row.sidebar-separator:hover,
+.sidebar-listbox row.sidebar-separator:active {
+    background-color: transparent;
+    transform: none;
+}
+
+.sidebar-switcher button {
+    padding-left: 12px;
+    padding-right: 12px;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    margin-left: 6px;
+    margin-right: 6px;
+    min-height: 36px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    transition: background-color 150ms ease;
+}
+
+.sidebar-switcher button:hover {
+    background-color: alpha(currentColor, 0.1);
+    transform: translateX(2px);
+}
+
+.sidebar-switcher button:checked {
+    background-color: alpha(@accent_bg_color, 0.3);
+    transform: translateX(4px);
+}
+
+.sidebar-switcher button label {
+    color: @window_fg_color;
+    font-size: 11pt;
+    font-weight: 400;
+    padding: 0;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.sidebar-switcher button:hover label {
+    color: @window_fg_color;
+}
+
+.sidebar-switcher button:checked label {
+    color: @window_fg_color;
+    font-weight: 500;
+}
+
+.sidebar-switcher button image {
+    color: alpha(@window_fg_color, 0.7);
+    margin-right: 8px;
+    min-width: 16px;
+    min-height: 16px;
+    -gtk-icon-style: symbolic;
+}
+
+.sidebar-switcher button:hover image,
+.sidebar-switcher button:checked image {
+    color: @accent_color;
+}
+
+.sidebar-title {
+    font-size: 18pt;
+    font-weight: 700;
+    color: @window_fg_color;
+    padding: 18px 12px 12px 12px;
+    margin-bottom: 0;
+    letter-spacing: 0;
+}
+
+/* ===== Nautilus Path Bar (Breadcrumbs) ===== */
+.nautilus-path-container {
+    min-width: 200px;
+}
+
+.nautilus-path-bar {
+    background-color: alpha(currentColor, 0.06);
+    border-radius: 8px;
+    padding-left: 6px;
+    padding-right: 6px;
+    min-height: 32px;
+}
+
+.nautilus-path-bar button {
+    background: transparent;
+    border: none;
+    padding: 6px 12px;
+    min-height: 28px;
+    border-radius: 6px;
+    font-size: 13px;
+}
+
+.nautilus-path-bar button:hover {
+    background-color: alpha(currentColor, 0.12);
+}
+
+.nautilus-path-bar button:active {
+    background-color: alpha(currentColor, 0.18);
+}
+
+.nautilus-path-bar button.current-path {
+    font-weight: 600;
+    color: @accent_color;
+}
+
+.nautilus-path-bar image {
+    opacity: 0.6;
+    min-width: 14px;
+    margin: 0 2px;
+}
+
+/* Path entry (when editing) */
+.nautilus-path-entry {
+    min-height: 32px;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+    background-color: alpha(currentColor, 0.08);
+    border: 1px solid alpha(@accent_color, 0.3);
+}
+
+.nautilus-path-entry:focus {
+    border-color: @accent_color;
+    background-color: alpha(currentColor, 0.1);
+}
+
+/* ===== Nautilus Grid View ===== */
+.nautilus-view {
+    background-color: @view_bg_color;
+}
+
+.nautilus-grid {
+    background-color: transparent;
+    padding: 16px;
+}
+
+.nautilus-grid>child {
+    margin: 0;
+}
+
+.nautilus-tile {
+    padding: 10px;
+    border-radius: 10px;
+    transition: background-color 150ms ease;
+}
+
+.nautilus-tile:hover {
+    background-color: alpha(currentColor, 0.06);
+}
+
+.nautilus-tile:selected {
+    background-color: alpha(@accent_bg_color, 0.2);
+}
+
+.nautilus-tile:selected:hover {
+    background-color: alpha(@accent_bg_color, 0.25);
+}
+
+.nautilus-icon {
+    -gtk-icon-style: regular;
+}
+
+/* Folder icons get the accent color treatment */
+.nautilus-tile image {
+    -gtk-icon-palette: warning @accent_color;
+}
+
+.nautilus-label {
+    font-size: 11px;
+    font-weight: 400;
+    color: @window_fg_color;
+    margin-top: 6px;
+}
+
+.nautilus-tile:selected .nautilus-label {
+    font-weight: 500;
+}
+
+/* ===== Nautilus List View ===== */
+.nautilus-list {
+    background-color: transparent;
+}
+
+.nautilus-list row {
+    border-radius: 6px;
+    margin: 1px 6px;
+    min-height: 40px;
+}
+
+.nautilus-list row:selected {
+    background-color: alpha(@accent_bg_color, 0.2);
+}
+
+.nautilus-list row:hover:not(:selected) {
+    background-color: alpha(currentColor, 0.05);
+}
+
+.nautilus-list-row {
+    min-height: 40px;
+    padding-top: 4px;
+    padding-bottom: 0px;
+}
+
+.nautilus-list-icon {
+    -gtk-icon-style: regular;
+}
+
+.nautilus-list-name {
+    font-weight: 400;
+    font-size: 13px;
+}
+
+.nautilus-list-size,
+.nautilus-list-date {
+    font-size: 12px;
+}
+
+/* ===== ScrolledWindow ===== */
+.nautilus-scrolled {
+    background-color: @view_bg_color;
+}
+
+.nautilus-scrolled:backdrop {
+    background-color: @view_bg_color;
+}
+
+/* Hide scrollbars */
+scrolledwindow {
+    border: none;
+}
+
+scrolledwindow scrollbar {
+    opacity: 0;
+    min-width: 0;
+    min-height: 0;
+    transition: opacity 200ms ease;
+}
+
+scrolledwindow scrollbar:hover {
+    opacity: 0;
+}
+
+scrolledwindow scrollbar:backdrop {
+    opacity: 0;
+}
+
+/* Hide scrollbar trough and slider */
+scrolledwindow scrollbar trough {
+    opacity: 0;
+}
+
+scrolledwindow scrollbar slider {
+    opacity: 0;
+}
+
+/* ===== Entry Fields ===== */
+.nautilus-entry {
+    min-height: 36px;
+    border-radius: 8px;
+}
+
+.nautilus-search {
+    min-height: 36px;
+    border-radius: 8px;
+}
+
+entry {
+    background-color: @card_bg_color;
+    border: none;
+    border-radius: 6px;
+    color: @window_fg_color;
+    padding: 6px 12px;
+    min-height: 34px;
+    caret-color: @accent_color;
+    font-size: 11pt;
+    font-weight: 400;
+    transition: box-shadow 200ms ease;
+}
+
+entry:focus {
+    box-shadow: none;
+}
+
+entry text {
+    color: @window_fg_color;
+}
+
+entry placeholder {
+    color: alpha(@window_fg_color, 0.5);
+}
+
+/* ===== Header Bar ===== */
+headerbar {
+    background-color: transparent;
+    box-shadow: none;
+    border-bottom: none;
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+}
+
+headerbar:backdrop {
+    background-color: transparent;
+}
+
+headerbar.flat {
+    background-color: transparent;
+    border-bottom: none;
+}
+
+headerbar.flat:backdrop {
+    background-color: transparent;
+}
+
+/* Hide headerbar completely */
+window headerbar {
+    opacity: 0;
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+}
+
+headerbar {
+    opacity: 0;
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+}
+
+/* Hide titlebar decoration */
+window decoration {
+    opacity: 0;
+    min-height: 0;
+}
+
+window titlebar {
+    opacity: 0;
+    min-height: 0;
+    padding: 0;
+    margin: 0;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+}
+
+/* Make window content responsive */
+window {
+    min-width: 0;
+    min-height: 0;
+}
+
+window>box {
+    min-width: 0;
+    min-height: 0;
+}
+
+/* Ensure main container is always visible */
+applicationwindow {}
+
+applicationwindow>box {}
+
+/* Make sidebar responsive; narrower min so content area usable at 1/4 screen */
+.sidebar {
+    min-width: 140px;
+}
+
+/* Sidebar ScrolledWindow: allow vertical scroll when many items, keep list usable */
+.sidebar scrolledwindow {
+    min-width: 0;
+    min-height: 0;
+}
+
+.sidebar listbox {
+    min-width: 0;
+}
+
+/* Make stack responsive */
+stack {
+    min-width: 0;
+    min-height: 0;
+}
+
+/* Content area (tabs): allow scrolling so buttons/content stay reachable when window is small */
+stack scrolledwindow {
+    min-width: 0;
+    min-height: 0;
+}
+
+/* Ensure stack children get correct allocation; scrolling handled by scrolledwindow above */
+stack>child {
+    min-width: 0;
+    min-height: 0;
+}
+
+/* Sections inside tab content: allow shrink so they scroll on narrow windows */
+.settings-section,
+.content-section {
+    min-width: 0;
+}
+
+/* Show scrollbars in content and sidebar when resizing so controls stay accessible */
+stack scrolledwindow scrollbar,
+stack scrolledwindow scrollbar trough,
+stack scrolledwindow scrollbar slider,
+.sidebar scrolledwindow scrollbar,
+.sidebar scrolledwindow scrollbar trough,
+.sidebar scrolledwindow scrollbar slider {
+    opacity: 0.75;
+}
+
+stack scrolledwindow scrollbar:hover,
+.sidebar scrolledwindow scrollbar:hover {
+    opacity: 1;
+}
+
+/* Make main container responsive */
+window>box {
+    min-width: 0;
+    min-height: 0;
+}
+
+/* Make all boxes responsive */
+box {
+    min-width: 0;
+    min-height: 0;
+}
+
+/* Ensure horizontal boxes don't clip content */
+box[orient="horizontal"] {}
+
+/* Ensure vertical boxes don't clip content */
+box[orient="vertical"] {}
+
+/* Ensure buttons are always visible and responsive */
+button {
+    min-width: 0;
+}
+
+/* Ensure labels wrap text on small screens */
+label {
+    min-width: 0;
+}
+
+/* Make ScrolledWindow responsive: allow scroll when content doesn't fit (small window) */
+scrolledwindow {
+    min-width: 0;
+    min-height: 0;
+}
+
+/* ScrolledWindow content can shrink so scrollbars appear when needed */
+scrolledwindow>child {
+    min-width: 0;
+    min-height: 0;
+}
+
+/* Force responsive behavior */
+applicationwindow>box {
+    min-width: 0;
+    min-height: 0;
+}
+
+applicationwindow>box>box {
+    min-width: 0;
+    min-height: 0;
+}
+
+/* Ensure main horizontal container is responsive */
+box[orient="horizontal"] {
+    min-width: 0;
+}
+
+/* Ensure all listboxes are responsive */
+listbox {
+    min-width: 0;
+}
+
+listbox row {
+    min-width: 0;
+}
+
+/* Headerbar buttons */
+headerbar button {
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    padding: 6px;
+    min-height: 36px;
+    min-width: 36px;
+    margin: 0 4px 0 0;
+    color: @headerbar_fg_color;
+    font-size: 11pt;
+    font-weight: 500;
+    transition: background-color 150ms ease;
+}
+
+headerbar button:hover {
+    background-color: alpha(@window_fg_color, 0.12);
+}
+
+headerbar button:active,
+headerbar button:checked {
+    background-color: alpha(@window_fg_color, 0.18);
+}
+
+headerbar button image {
+    color: inherit;
+    opacity: 0.9;
+    -gtk-icon-style: symbolic;
+    min-width: 18px;
+    min-height: 18px;
+}
+
+headerbar button:hover image {
+    opacity: 1.0;
+}
+
+/* Linked buttons in header */
+headerbar .linked button {
+    border-radius: 0;
+    min-width: 36px;
+    min-height: 36px;
+}
+
+headerbar .linked button:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+headerbar .linked button:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+headerbar .linked button:only-child {
+    border-radius: 8px;
+}
+
+/* ===== Buttons ===== */
+button {
+    background-color: @card_bg_color;
+    border: none;
+    border-radius: 8px;
+    color: @window_fg_color;
+    padding: 8px 16px;
+    min-height: 36px;
+    font-size: 11pt;
+    font-weight: 600;
+    transition: background-color 150ms ease,
+
+}
+
+button.flat {
+    background: transparent;
+    border: none;
+    padding: 6px 12px;
+}
+
+button:hover {
+    background-color: alpha(@window_fg_color, 0.1);
+    box-shadow: none;
+}
+
+button.flat:hover {
+    background-color: alpha(@window_fg_color, 0.08);
+}
+
+button:active {
+    background-color: alpha(@window_fg_color, 0.15);
+    border-color: alpha(@window_fg_color, 0.25);
+    box-shadow: none;
+}
+
+button.flat:active {
+    background-color: alpha(@window_fg_color, 0.12);
+}
+
+button:disabled {
+    opacity: 0.5;
+    background-color: alpha(@window_fg_color, 0.05);
+    border-color: alpha(@window_fg_color, 0.08);
+}
+
+button.suggested-action {
+    background-color: @accent_bg_color;
+    border-color: @accent_bg_color;
+    color: @accent_fg_color;
+    font-weight: 600;
+    box-shadow: none;
+}
+
+button.suggested-action:hover {
+    background-color: alpha(@accent_bg_color, 0.9);
+    border-color: alpha(@accent_bg_color, 0.9);
+    box-shadow: none;
+}
+
+button.suggested-action:active {
+    background-color: alpha(@accent_bg_color, 0.85);
+    box-shadow: none;
+}
+
+button.destructive-action {
+    background-color: #c01c28;
+    border-color: #c01c28;
+    color: white;
+    font-weight: 600;
+    box-shadow: none;
+}
+
+button.destructive-action:hover {
+    background-color: alpha(#c01c28, 0.9);
+    border-color: alpha(#c01c28, 0.9);
+    box-shadow: none;
+}
+
+button.destructive-action:active {
+    background-color: alpha(#c01c28, 0.85);
+    box-shadow: none;
+}
+
+button image {
+    opacity: 0.9;
+    -gtk-icon-style: symbolic;
+    min-width: 16px;
+    min-height: 16px;
+}
+
+button:hover image {
+    opacity: 1.0;
+}
+
+/* ===== Labels ===== */
+label {
+    color: @window_fg_color;
+    font-size: 11pt;
+    font-weight: 400;
+    padding: 0;
+    margin: 0;
+    line-height: 1.2;
+}
+
+label.dim-label {
+    opacity: 0.55;
+    font-weight: 400;
+}
+
+/* Page title - large beautiful header */
+.title {
+    font-size: 32pt;
+    font-weight: 700;
+    color: @window_fg_color;
+    margin-bottom: 36px;
+    margin-top: 0;
+    padding: 0;
+    letter-spacing: -0.8px;
+    text-shadow: 0 2px 4px alpha(black, 0.15);
+    line-height: 1.2;
+}
+
+/* ===== Popovers ===== */
+popover.menu {
+    padding: 4px;
+}
+
+popover.menu modelbutton {
+    border-radius: 6px;
+    padding: 8px 12px;
+    min-height: 28px;
+}
+
+popover.menu modelbutton:hover {
+    background-color: alpha(currentColor, 0.08);
+}
+
+/* ===== Context Menu ===== */
+popover.menu separator {
+    margin: 4px 8px;
+}
+
+/* ===== Utility Classes ===== */
+.caption {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.7;
+}
+
+/* ===== Selection ===== */
+gridview:focus child:selected,
+listview:focus row:selected {
+    outline: 2px solid @accent_color;
+    outline-offset: -2px;
+}
+
+/* ===== Split View ===== */
+navigation-split-view {
+    background-color: @view_bg_color;
+}
+
+navigation-split-view:backdrop {
+    background-color: @view_bg_color;
+}
+
+/* ===== Message Dialogs ===== */
+messagedialog .dialog-action-area button {
+    min-height: 36px;
+    border-radius: 8px;
+}
+
+messagedialog .dialog-action-area button.suggested-action {
+    background-color: @accent_bg_color;
+    color: @accent_fg_color;
+}
+
+messagedialog .dialog-action-area button.destructive-action {
+    background-color: #c01c28;
+    color: white;
+}
+
+/* ===== Empty State ===== */
+.nautilus-view {
+    background-color: @view_bg_color;
+}
+
+/* ===== FUSE-SPECIFIC STYLES ===== */
+/* Settings sections and rows */
+.settings-section {
+    background-color: @card_bg_color;
+    border: none;
+    border-radius: 12px;
+    margin: 18px 0;
+    padding: 0;
+    transition: background-color 200ms ease, box-shadow 200ms ease;
+    box-shadow: 0 2px 8px alpha(black, 0.08);
+}
+
+.settings-section:hover {
+    background-color: @card_bg_color;
+    box-shadow: 0 4px 12px alpha(black, 0.12);
+}
+
+.settings-row {
+    padding: 12px 18px;
+    min-height: 48px;
+    border: none;
+    border-bottom: none;
+    border-radius: 0;
+    transition: background-color 150ms ease;
+    background-color: transparent;
+}
+
+.settings-row:first-child {
+    border-radius: 12px 12px 0 0;
+}
+
+.settings-row:last-child {
+    border-bottom: none;
+    border-radius: 0 0 12px 12px;
+}
+
+.settings-row:only-child {
+    border-radius: 12px;
+    border-bottom: none;
+}
+
+.settings-row:hover {
+    background-color: alpha(@window_fg_color, 0.06);
+}
+
+.settings-row label {
+    color: @window_fg_color;
+    font-size: 11pt;
+    font-weight: 500;
+    padding: 0;
+    margin: 0;
+    line-height: 1.2;
+}
+
+.settings-row .dim-label,
+.settings-row .row-description {
+    color: alpha(@window_fg_color, 0.55);
+    font-size: 10pt;
+    font-weight: 400;
+    margin-top: 2px;
+    padding: 0;
+    line-height: 1.2;
+}
+
+.settings-row .row-title {
+    font-size: 12.5pt;
+    font-weight: 600;
+    color: @window_fg_color;
+    padding: 0;
+    margin: 0 0 6px 0;
+    line-height: 1.3;
+    letter-spacing: -0.3px;
+}
+
+.settings-row .row-description {
+    font-size: 11pt;
+    font-weight: 400;
+    color: alpha(@window_fg_color, 0.75);
+    padding: 0;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Section titles and descriptions */
+.section-title {
+    font-size: 16pt;
+    font-weight: 600;
+    color: @window_fg_color;
+    padding: 0;
+    margin: 0;
+    line-height: 1.3;
+    letter-spacing: -0.2px;
+}
+
+.section-description {
+    font-size: 11pt;
+    font-weight: 400;
+    color: alpha(@window_fg_color, 0.7);
+    padding: 0;
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Color input elements */
+.color-preview {
+    background-color: @card_bg_color;
+    border: 2px solid alpha(@window_fg_color, 0.2);
+    border-radius: 8px;
+}
+
+.color-label {
+    font-size: 11pt;
+    font-weight: 500;
+    color: @window_fg_color;
+}
+
+.color-entry {
+    min-height: 36px;
+    border-radius: 8px;
+}
+
+.apply-button {
+    min-height: 40px;
+    font-weight: 600;
+}
+
+/* Switches - Fixed positioning and visual artifacts */
+switch {
+    background-color: rgba(255, 255, 255, 0.25);
+    border: none;
+    border-radius: 9999px;
+    min-height: 20px;
+    min-width: 40px;
+    margin: 0;
+    padding: 0;
+    outline: none;
+}
+
+switch:checked {
+    background-color: @accent_bg_color;
+}
+
+switch slider {
+    background-color: white;
+    border-radius: 50%;
+    min-width: 14px;
+    min-height: 14px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+    margin-left: 3px;
+    margin-right: 3px;
+    outline: none;
+}
+
+switch:checked slider {
+    background-color: @accent_fg_color;
+}
+
+/* ===== Enhanced Entry Styles ===== */
+entry {
+    background-color: @card_bg_color;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 14px;
+    min-height: 40px;
+    font-size: 11.5pt;
+    color: @window_fg_color;
+    transition: background-color 200ms ease,
+        box-shadow 200ms ease,
+        transform 200ms ease;
+    /* Don't transition 'all' as it can break layout */
+    box-shadow: none;
+}
+
+entry:focus {
+    background-color: @card_bg_color;
+    box-shadow: none;
+    outline: none;
+    transform: translateY(-1px);
+}
+
+entry:hover:not(:focus) {
+    background-color: @card_bg_color;
+    box-shadow: none;
+}
+
+entry:disabled {
+    opacity: 0.5;
+    background-color: @card_bg_color;
+}
+
+entry::placeholder {
+    color: alpha(@window_fg_color, 0.4);
+    font-style: italic;
+}
+
+/* ===== Enhanced CheckButton Styles ===== */
+checkbutton {
+    margin: 0;
+    padding: 4px;
+    border-radius: 6px;
+    transition: background-color 150ms ease;
+    /* Don't transition 'all' as it can break layout */
+}
+
+checkbutton:hover {
+    background-color: alpha(@accent_bg_color, 0.1);
+}
+
+checkbutton:active {
+    background-color: alpha(@accent_bg_color, 0.2);
+}
+
+checkbutton check {
+    background-color: alpha(@card_bg_color, 0.8);
+    border: 2px solid alpha(@window_fg_color, 0.3);
+    border-radius: 4px;
+    min-width: 18px;
+    min-height: 18px;
+    margin: 0;
+    transition: background-color 200ms ease,
+        border-color 200ms ease;
+    /* Don't transition 'all' as it can break layout */
+}
+
+checkbutton check:checked {
+    background-color: @accent_bg_color;
+    border-color: @accent_bg_color;
+    background-image: none;
+}
+
+checkbutton check:checked:after {
+    color: @accent_fg_color;
+    font-weight: bold;
+    font-size: 12pt;
+}
+
+checkbutton label {
+    margin-left: 8px;
+    font-size: 10pt;
+    color: @window_fg_color;
+    font-weight: 500;
+}
+
+/* ===== Enhanced Keybind Row Styles ===== */
+.keybind-row {
+    padding: 16px 20px;
+    margin: 8px 0;
+    border-radius: 10px;
+    background-color: @card_bg_color;
+    border: none;
+    transition: background-color 200ms ease,
+        box-shadow 200ms ease,
+        transform 200ms ease;
+    /* Don't transition 'all' as it can break layout */
+    box-shadow: none;
+}
+
+.keybind-row:hover {
+    background-color: @card_bg_color;
+    transform: translateX(3px);
+    box-shadow: none;
+}
+
+.keybind-row:focus-within {
+    background-color: @card_bg_color;
+    box-shadow: none;
+    transform: translateY(-1px);
+}
+
+/* ===== Enhanced Section Styles ===== */
+
+/* Device status icon for network/bluetooth */
+.device-status-icon {
+    font-size: 18pt;
+    color: @accent_color;
+    opacity: 0.9;
+    margin-right: 8px;
+}
+
+/* ===== Better Spacing for Keybind Section ===== */
+.keybind-section {
+    padding: 28px 32px;
+    margin: 36px 0;
+    border-radius: 14px;
+    background-color: @card_bg_color;
+    border: none;
+    box-shadow: none;
+}
+
+/* ===== Content Section Spacing ===== */
+.content-section {
+    margin: 40px 0;
+    padding: 24px 0;
+}
+
+/* ===== Enhanced Modifiers Box ===== */
+.modifiers-box {
+    padding: 10px 12px;
+    border-radius: 10px;
+    background-color: @card_bg_color;
+    border: none;
+    box-shadow: none;
+}
+
+/* ===== Smooth Transitions ===== */
+* {
+    transition: background-color 200ms ease,
+        border-color 200ms ease,
+        color 200ms ease,
+        box-shadow 200ms ease,
+        opacity 200ms ease;
+    /* Removed transform from global transition to prevent layout issues */
+    /* Transform transitions only on specific elements that need them */
+}
+
+/* Transform transitions only for hover effects, not layout */
+button:hover,
+.sidebar-listbox row:hover:not(:selected) {
+    transition: background-color 200ms ease,
+        transform 150ms ease;
+}
+
+/* Disable expensive transitions during resize for better performance */
+window.resizing *,
+window.resizing box,
+window.resizing stack,
+window.resizing scrolledwindow,
+window.resizing button,
+window.resizing entry,
+window.resizing label,
+.resizing *,
+.resizing box,
+.resizing stack,
+.resizing scrolledwindow,
+.resizing button,
+.resizing entry,
+.resizing label {
+    transition: background-color 0ms ease,
+        border-color 0ms ease,
+        color 0ms ease,
+        transform 0ms ease,
+        box-shadow 0ms ease,
+        opacity 0ms ease;
+    animation: none;
+}
+
+/* Disable hover effects during resize */
+window.resizing button:hover,
+window.resizing entry:hover,
+.resizing button:hover,
+.resizing entry:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* ===== Stack Animation Enhancement ===== */
+stack {
+    transition: opacity 400ms cubic-bezier(0.4, 0.0, 0.2, 1);
+    /* Don't transition 'all' as it can break layout */
+}
+
+/* Disable stack transitions during resize */
+window.resizing stack,
+.resizing stack {
+    transition: none;
+}
+
+/* ===== Appearance Tab Animations ===== */
+.settings-section {
+    animation: fadeInSlide 300ms ease-out forwards;
+    /* Ensure sections don't break layout after animation */
+    min-width: 0;
+    min-height: 0;
+}
+
+@keyframes fadeInSlide {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        /* Reset to prevent layout issues */
+    }
+}
+
+/* Theme cards - improved styling */
+.theme-card {
+    background-color: @view_bg_color;
+    border: 1px solid alpha(@window_fg_color, 0.08);
+    border-radius: 16px;
+    padding: 0;
+    min-width: 140px;
+    /* Reduced to fit side-by-side */
+    min-height: 120px;
+    transition: all 250ms cubic-bezier(0.4, 0.0, 0.2, 1);
+    box-shadow: none;
+}
+
+.theme-card:hover {
+    transform: translateY(-4px);
+    box-shadow: none;
+    border-color: alpha(@accent_color, 0.3);
+}
+
+.theme-card-selected {
+    border: 2px solid @accent_color;
+    box-shadow: none;
+    background-color: alpha(@accent_color, 0.03);
+}
+
+.theme-preview {
+    border-radius: 14px 14px 0 0;
+    margin: 2px 2px 0 2px;
+}
+
+/* Preset buttons - improved styling (using main style below) */
+
+/* Rounding buttons */
+/* Rounding buttons */
+.rounding-button {
+    min-width: 100px;
+    padding: 16px 24px;
+    border-radius: 12px;
+    background-color: @view_bg_color;
+    border: 1px solid alpha(@window_fg_color, 0.08);
+    font-weight: 600;
+    font-size: 11pt;
+    transition: all 200ms cubic-bezier(0.4, 0.0, 0.2, 1);
+    box-shadow: none;
+    margin: 4px;
+}
+
+.rounding-button:hover {
+    transform: translateY(-2px);
+    background-color: alpha(@window_fg_color, 0.05);
+    box-shadow: none;
+}
+
+.rounding-button.suggested-action {
+    background-color: @accent_bg_color;
+    color: @accent_fg_color;
+    border-color: @accent_bg_color;
+    box-shadow: none;
+}
+
+.rounding-button.suggested-action:hover {
+    background-color: alpha(@accent_bg_color, 0.9);
+    box-shadow: none;
+    transform: translateY(-3px);
+}
+
+/* Responsive row - stacks vertically on small screens */
+.responsive-row {}
+
+/* Settings sections - responsive (merged with animation definition above) */
+
+/* Make theme cards and buttons flexible */
+.responsive-row .theme-card,
+.responsive-row .rounding-button {
+    min-width: 0;
+}
+
+/* FlowBox responsive adjustments */
+flowbox {
+    min-width: 0;
+}
+
+flowbox child {
+    min-width: 0;
+}
+
+/* ===== About Page Styles ===== */
+.about-logo {
+    font-size: 64pt;
+    font-weight: 400;
+    margin: 20px 0;
+    color: @accent_bg_color;
+}
+
+.about-name {
+    font-size: 32pt;
+    font-weight: 700;
+    color: @window_fg_color;
+    margin: 8px 0;
+    letter-spacing: -0.8px;
+    text-shadow: 0 2px 4px alpha(black, 0.15);
+}
+
+.about-tagline {
+    font-size: 12pt;
+    font-weight: 400;
+    color: alpha(@window_fg_color, 0.7);
+    margin: 8px 0 24px 0;
+    font-style: italic;
+}
+
+.component-icon {
+    font-size: 24pt;
+    color: @accent_bg_color;
+}
+
+/* Very conservative approach to prevent overflow
+       40px switch - 14px slider - 3px margins
+       Position: 3px + 10px = 13px start
+       End: 13px + 14px = 27px
+       Remaining: 40px - 27px = 13px margin on right */
+transform: translateX(10px);
+}
+
+switch:hover:not(:disabled) {
+    background-color: rgba(255, 255, 255, 0.35);
+    outline: none;
+}
+
+switch:hover:not(:disabled) slider {
+    transform: none;
+}
+
+switch:checked:hover:not(:disabled) {
+    background-color: @accent_bg_color;
+    opacity: 0.9;
+    outline: none;
+}
+
+switch:checked:hover:not(:disabled) slider {
+    transform: translateX(10px);
+}
+
+switch:backdrop {
+    background-color: rgba(255, 255, 255, 0.15);
+    outline: none;
+}
+
+switch:checked:backdrop {
+    background-color: alpha(@accent_bg_color, 0.7);
+    outline: none;
+}
+
+switch:backdrop slider {
+    background-color: rgba(255, 255, 255, 0.9);
+    outline: none;
+    transform: none;
+}
+
+switch:checked:backdrop slider {
+    background-color: rgba(255, 255, 255, 0.9);
+    outline: none;
+    transform: translateX(10px);
+}
+
+switch:disabled {
+    opacity: 0.5;
+    outline: none;
+}
+
+switch:disabled slider {
+    opacity: 0.8;
+    outline: none;
+    transform: none;
+}
+
+switch:checked:disabled slider {
+    transform: translateX(10px);
+}
+
+/* Switch alignment in settings rows */
+.settings-row switch {
+    margin: 0;
+    padding: 0;
+    margin-right: 0;
+}
+
+/* Scales */
+scale {
+    padding-top: 6px;
+    padding-bottom: 0px;
+}
+
+scale trough {
+    background-color: alpha(@window_fg_color, 0.15);
+    border: none;
+    border-radius: 6px;
+    min-height: 6px;
+    min-width: 120px;
+}
+
+scale highlight {
+    background-color: @accent_bg_color;
+    border-radius: 6px;
+}
+
+scale slider {
+    background-color: @window_fg_color;
+    border: none;
+    border-radius: 50%;
+    min-width: 20px;
+    min-height: 20px;
+    box-shadow: none;
+}
+
+scale slider:hover {
+    background-color: @window_fg_color;
+}
+
+/* Color buttons */
+.color-button {
+    border: 2px solid alpha(@window_fg_color, 0.2);
+    border-radius: 8px;
+    min-width: 40px;
+    min-height: 40px;
+    padding: 0;
+    background: transparent;
+    transition: border-color 200ms ease,
+        box-shadow 200ms ease,
+        transform 150ms ease,
+        border-width 200ms ease;
+}
+
+.color-button:hover {
+    border-color: @accent_color;
+    border-width: 3px;
+    box-shadow: none;
+    transform: scale(1.1);
+}
+
+/* Preset buttons */
+.preset-button {
+    background-color: @card_bg_color;
+    border: none;
+    border-radius: 16px;
+    padding: 0;
+    min-width: 0;
+    min-height: 200px;
+    transition: background-color 300ms cubic-bezier(0.4, 0.0, 0.2, 1),
+        box-shadow 300ms cubic-bezier(0.4, 0.0, 0.2, 1),
+        transform 300ms cubic-bezier(0.4, 0.0, 0.2, 1);
+    /* Don't transition 'all' as it can break layout */
+    box-shadow: none;
+}
+
+.preset-button:hover {
+    background-color: alpha(@accent_color, 0.08);
+    box-shadow: none;
+    transform: translateY(-4px) scale(1.04);
+}
+
+.preset-button:active {
+    box-shadow: none;
+    transform: translateY(-2px) scale(1.02);
+}
+
+.preset-name {
+    font-size: 14pt;
+    font-weight: 700;
+    color: @window_fg_color;
+    letter-spacing: -0.2px;
+}
+
+.color-bar {
+    border-radius: 6px;
+    margin: 0;
+    box-shadow: none;
+}
+
+.color-bar-large {
+    min-height: 14px;
+    border-radius: 6px;
+}
+
+/* Preset variant labels */
+.preset-variant-label {
+    font-size: 9pt;
+    font-weight: 600;
+    color: alpha(@window_fg_color, 0.8);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Expand wallpapers button */
+.expand-wallpapers-button {
+    font-weight: 500;
+    color: @accent_color;
+    padding: 8px 16px;
+}
+
+.expand-wallpapers-button:hover {
+    background-color: alpha(@accent_color, 0.1);
+}
+
+/* Theme cards */
+.theme-card {
+    background-color: @card_bg_color;
+    border: none;
+    border-radius: 12px;
+    padding: 0;
+    min-width: 180px;
+    min-height: 160px;
+    transition: box-shadow 250ms cubic-bezier(0.4, 0.0, 0.2, 1),
+        transform 250ms cubic-bezier(0.4, 0.0, 0.2, 1);
+    /* Don't transition 'all' as it can break layout */
+    box-shadow: none;
+}
+
+.theme-card:hover {
+    box-shadow: none;
+    transform: translateY(-2px) scale(1.02);
+}
+
+.theme-card-selected {
+    box-shadow: none;
+}
+
+.theme-preview {
+    border-radius: 8px 8px 0 0;
+}
+
+.theme-preview-light {
+    background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+}
+
+.theme-preview-dark {
+    background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+}
+
+.theme-name {
+    font-size: 12pt;
+    font-weight: 600;
+    color: @window_fg_color;
+}
+
+/* Wallpaper grid tiles - responsive */
+.wallpaper-tile-appearance {
+    min-width: 0;
+    min-height: 180px;
+    border-radius: 8px;
+    border: none;
+    transition: box-shadow 200ms ease, transform 150ms ease;
+    /* Allow tiles to shrink and expand */
+}
+
+.wallpaper-tile-appearance:hover {
+    box-shadow: 0 0 0 2px @accent_color;
+    transform: scale(1.01);
+}
+
+.wallpaper-tile-selected {
+    box-shadow: 0 0 0 2px @accent_color;
+}
+
+/* Bluetooth device status icon */
+
+/* Combobox */
+combobox button {
+    background-color: @card_bg_color;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 12px;
+    min-height: 36px;
+    font-size: 11pt;
+    font-weight: 600;
+    transition: background-color 150ms ease;
+}
+
+combobox button:hover {
+    background-color: alpha(@window_fg_color, 0.1);
+}
+
+combobox button:active {
+    background-color: alpha(@window_fg_color, 0.15);
+}
+
+combobox button arrow {
+    color: alpha(@window_fg_color, 0.8);
+    min-width: 16px;
+    min-height: 16px;
+    margin-left: 8px;
+}
+
+/* Wallpaper grid */
+.wallpaper-flowbox {
+    padding: 12px;
+}
+
+.wallpaper-tile {
+    margin: 6px;
+    border: 2px solid alpha(@window_fg_color, 0.1);
+    border-radius: 12px;
+    min-width: 160px;
+    min-height: 100px;
+    background-color: @card_bg_color;
+}
+
+.wallpaper-tile:hover {
+    border-color: @accent_color;
+}
+
+.wallpaper-tile:selected {
+    border-color: @accent_color;
+    border-width: 3px;
+}
+
+.wallpaper-tile image {
+    border-radius: 10px;
+}
+
+/* Version label */
+.version-label {
+    font-size: 10pt;
+    color: alpha(@window_fg_color, 0.5);
+    padding: 12px;
+    margin: 0;
+}
+
+/* Stack */
+stack {
+    background-color: @window_bg_color;
+    margin: 0;
+    padding: 0;
+}
+
+stack>child {
+    animation: fadeIn 250ms ease-out forwards;
+    /* Ensure children don't break layout */
+    min-width: 0;
+    min-height: 0;
+    /* Reset transform after animation to prevent layout issues */
+}
+
+/* Scrollbars - very thin line */
+scrollbar {
+    background: transparent;
+    border: none;
+}
+
+scrollbar slider {
+    background-color: alpha(@window_fg_color, 0.15);
+    border-radius: 2px;
+    min-width: 2px;
+    min-height: 2px;
+    margin: 0;
+    transition: background-color 150ms ease;
+}
+
+scrollbar slider:hover {
+    background-color: alpha(@window_fg_color, 0.25);
+}
+
+scrollbar slider:active {
+    background-color: alpha(@window_fg_color, 0.35);
+}
+
+scrollbar.horizontal slider {
+    min-height: 2px;
+    min-width: 40px;
+}
+
+scrollbar.vertical slider {
+    min-width: 2px;
+    min-height: 40px;
+}
+
+scrollbar trough {
+    background: transparent;
+    border: none;
+}
+
+/* ===== Card Layout Styles ===== */
+.card {
+    background-color: @card_bg_color;
+    border-radius: 12px;
+    padding: 0;
+    margin-bottom: 24px;
+}
+
+.card-row {
+    padding: 12px 16px;
+    border-bottom: 1px solid alpha(@window_fg_color, 0.05);
+    min-height: 50px;
+}
+
+.card-row:last-child {
+    border-bottom: none;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+.card-row:first-child {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.group-header {
+    margin: 24px 4px 8px 4px;
+    font-weight: 800;
+    font-size: 11pt;
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
