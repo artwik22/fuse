@@ -134,7 +134,7 @@ fn create_components_section() -> GtkBox {
     let components = vec![
         ("Spark", "󰈙", "Application launcher and desktop shell"),
         ("Fuse", "⚙️", "System settings application"),
-        ("Index", "󰉋", "File manager"),
+        ("Blink", "󰉋", "File manager"),
         ("Vitals", "󰍛", "System monitor"),
     ];
 

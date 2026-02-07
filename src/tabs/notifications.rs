@@ -112,6 +112,10 @@ fn create_notifications_section(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
     let rounding_row = create_rounding_row(Arc::clone(&config));
     section.append(&rounding_row);
 
+    // Notification Sound section
+    let sound_row = create_sound_row(Arc::clone(&config));
+    section.append(&sound_row);
+
     section
 }
 
@@ -253,6 +257,92 @@ fn create_position_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
                         b.remove_css_class("suggested-action");
                     }
                 }
+
+                // Notify quickshell after a short delay
+                gtk4::glib::timeout_add_local(std::time::Duration::from_millis(100), move || {
+                    let _ = crate::core::quickshell::notify_color_change();
+                    gtk4::glib::ControlFlow::Break
+                });
+            }
+        });
+    }
+
+    row.append(&button_box);
+    row
+}
+
+fn create_sound_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
+    let row = GtkBox::new(Orientation::Horizontal, 12);
+    row.add_css_class("settings-row");
+    row.set_hexpand(true);
+
+    let text_box = GtkBox::new(Orientation::Vertical, 2);
+    text_box.set_hexpand(true);
+
+    let title_label = Label::new(Some("Notification Sound"));
+    title_label.add_css_class("row-title");
+    title_label.set_xalign(0.0);
+    text_box.append(&title_label);
+
+    let desc_label = Label::new(Some("Choose the sound for new notifications"));
+    desc_label.add_css_class("row-description");
+    desc_label.set_xalign(0.0);
+    text_box.append(&desc_label);
+
+    row.append(&text_box);
+
+    let button_box = GtkBox::new(Orientation::Horizontal, 6);
+    button_box.set_halign(gtk4::Align::End);
+    button_box.set_valign(gtk4::Align::Center);
+
+    let current_sound = config.lock().unwrap().notification_sound.clone().unwrap_or_else(|| "message.oga".to_string());
+
+    let sounds = [
+        ("Default", "message.oga"),
+        ("Glass", "bell.oga"),
+        ("Crystal", "complete.oga"),
+        ("Sonar", "message-new-instant.oga"),
+        ("Pop", "audio-volume-change.oga"),
+    ];
+
+    let mut buttons = Vec::new();
+
+    for (label, value) in sounds {
+        let btn = gtk4::Button::with_label(label);
+        if current_sound == value {
+            btn.add_css_class("suggested-action");
+        }
+        buttons.push((btn.clone(), value.to_string()));
+        button_box.append(&btn);
+    }
+
+    for (btn, value) in buttons.clone() {
+        let config = Arc::clone(&config);
+        let value_clone = value.clone();
+        let buttons_clone = buttons.clone();
+        btn.connect_clicked(move |_| {
+            let mut cfg = ColorConfig::load();
+            cfg.set_notification_sound(&value_clone);
+            if let Err(_) = cfg.save() {
+                // Handle error
+            } else {
+                *config.lock().unwrap() = cfg;
+                
+                // Update UI visually
+                for (b, v) in buttons_clone.iter() {
+                    if v == &value_clone {
+                        b.add_css_class("suggested-action");
+                    } else {
+                        b.remove_css_class("suggested-action");
+                    }
+                }
+
+                // Play a preview
+                let preview_sound = value_clone.clone();
+                std::process::Command::new("paplay")
+                    .arg(format!("/usr/share/sounds/freedesktop/stereo/{}", preview_sound))
+                    .spawn()
+                    .ok();
 
                 // Notify quickshell after a short delay
                 gtk4::glib::timeout_add_local(std::time::Duration::from_millis(100), move || {

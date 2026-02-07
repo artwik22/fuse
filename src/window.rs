@@ -12,7 +12,7 @@ use gtk4::glib;
 
 use crate::core::config::ColorConfig;
 use crate::tabs::{appearance::AppearanceTab,
-                  system::SystemTab, audio::AudioTab, index::IndexTab, bluetooth::BluetoothTab, network::NetworkTab, notifications::NotificationsTab, about::AboutTab, quickshell::QuickshellTab, scripts::ScriptsTab};
+                  system::SystemTab, audio::AudioTab, blink::BlinkTab, bluetooth::BluetoothTab, network::NetworkTab, notifications::NotificationsTab, about::AboutTab, quickshell::QuickshellTab, scripts::ScriptsTab};
 
 const LAZY_TAB_NAMES: &[&str] = &["network", "appearance", "system"];
 
@@ -265,8 +265,8 @@ fn build_one_tab(
             stack.add_titled(t.widget(), Some("audio"), "󰕧 Audio");
         }
         4 => {
-            let t = IndexTab::new(c);
-            stack.add_titled(t.widget(), Some("index"), "󰉋 Index");
+            let t = BlinkTab::new(c);
+            stack.add_titled(t.widget(), Some("blink"), "󰉋 Blink");
         }
         5 => {
             let t = NotificationsTab::new(c);
@@ -358,7 +358,7 @@ fn create_custom_sidebar(stack: &Stack) -> GtkBox {
     };
     
     // Store page names in order (excluding separators)
-    let page_names = vec!["network", "bluetooth", "appearance", "audio", "index", "notifications", "quickshell", "scripts", "system", "about"];
+    let page_names = vec!["network", "bluetooth", "appearance", "audio", "blink", "notifications", "quickshell", "scripts", "system", "about"];
     
     // Add Network and Bluetooth at the top
     let network_row = create_row("Network", "󰤨", "network").0;
@@ -387,8 +387,8 @@ fn create_custom_sidebar(stack: &Stack) -> GtkBox {
     let audio_row = create_row("Audio", "󰕧", "audio").0;
     list_box.append(&audio_row);
     
-    let index_row = create_row("Index", "󰉋", "index").0;
-    list_box.append(&index_row);
+    let blink_row = create_row("Blink", "󰉋", "blink").0;
+    list_box.append(&blink_row);
     
     let notifications_row = create_row("Notifications", "󰂚", "notifications").0;
     list_box.append(&notifications_row);
@@ -427,7 +427,7 @@ fn create_custom_sidebar(stack: &Stack) -> GtkBox {
             // Get the row index directly (returns i32, not Option)
             let row_index = row.index();
             // Map index to page (skip separators at index 2 and index 8)
-            // Sidebar: 0=Network, 1=Bluetooth, 2=Separator, 3=Appearance, 4=Audio, 5=Index, 6=Notifications, 7=QuickShell, 8=Separator, 9=System, 10=About
+            // Sidebar: 0=Network, 1=Bluetooth, 2=Separator, 3=Appearance, 4=Audio, 5=Blink, 6=Notifications, 7=QuickShell, 8=Separator, 9=System, 10=About
             let page_idx = if row_index < 2 { 
                 row_index as usize
             } else if row_index < 9 {

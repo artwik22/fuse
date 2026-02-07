@@ -1,7 +1,7 @@
 pub mod appearance;
 pub mod system;
 pub mod audio;
-pub mod index;
+pub mod blink;
 pub mod bluetooth;
 pub mod network;
 pub mod notifications;

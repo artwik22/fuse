@@ -63,6 +63,8 @@ pub struct ColorConfig {
     pub notification_rounding: Option<String>,
     #[serde(rename = "quickshellBorderRadius", skip_serializing_if = "Option::is_none")]
     pub quickshell_border_radius: Option<u8>,
+    #[serde(rename = "notificationSound", skip_serializing_if = "Option::is_none")]
+    pub notification_sound: Option<String>,
 }
 
 impl Default for ColorConfig {
@@ -99,6 +101,7 @@ impl Default for ColorConfig {
             notification_position: Some("top".to_string()),
             notification_rounding: Some("standard".to_string()),
             quickshell_border_radius: Some(0),
+            notification_sound: Some("message.oga".to_string()),
         }
     }
 }
@@ -417,6 +420,13 @@ impl ColorConfig {
         } else {
             cmd.arg("");
         }
+
+        // Argument 33: notificationSound
+        if let Some(ref sound) = self.notification_sound {
+            cmd.arg(sound);
+        } else {
+            cmd.arg("");
+        }
         
         let output = cmd.output()?;
         if !output.status.success() {
@@ -560,6 +570,10 @@ impl ColorConfig {
 
     pub fn set_quickshell_border_radius(&mut self, value: u8) {
         self.quickshell_border_radius = Some(value);
+    }
+
+    pub fn set_notification_sound(&mut self, sound: &str) {
+        self.notification_sound = Some(sound.to_string());
     }
 
     /// Set GTK_SCALE_FACTOR from ui_scale (75 -> 0.75, 100 -> 1.0, 125 -> 1.25). Call before gtk_init.
