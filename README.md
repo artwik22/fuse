@@ -1,36 +1,41 @@
-# Fuse
+<p align="center">
+  <img src="resources/banner.png" alt="Fuse Banner" width="100%">
+</p>
 
-**The Unified Configuration Hub for Quickshell.**
+# <p align="center">⚡ FUSE ⚡</p>
 
-Fuse is a modern system settings application designed specifically for Alloy ecosystem. Built with **Rust**, **GTK4**, and **Libadwaita**, it provides a seamless and aesthetic interface for managing all aspects of your Alloy system.
+### <p align="center">**The Premium Configuration Hub for Quickshell.**</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Language-Rust-orange?style=for-the-badge&logo=rust" alt="Rust">
+  <img src="https://img.shields.io/badge/UI-GTK4-blue?style=for-the-badge&logo=gtk" alt="GTK4">
+  <img src="https://img.shields.io/badge/Design-Libadwaita-62a0ea?style=for-the-badge&logo=gnome" alt="Libadwaita">
+  <img src="https://img.shields.io/badge/License-MIT-green?style=for-the-badge" alt="License">
+</p>
 
 ---
 
-## ✨ Features
+## 🌟 Overview
 
-Fuse serves as the central brain for your Quickshell environment, offering granular control over:
+**Fuse** is a high-end, modern system settings application designed as the central nervous system for the **Alloy ecosystem**. Built with the performance of **Rust** and the sleek aesthetics of **GTK4/Libadwaita**, Fuse provides a unified and intuitive interface to control every aspect of your Quickshell environment.
 
-- **🎨 Appearance & Theme**: Synchronize system colors and manage the dynamic CSS engine.
-- **🖼️ Wallpaper Management**: Integrated background selector with real-time previews.
-- **📊 Bar Configuration**: Customize your system bars, widgets, and layout.
-- **🌐 Connectivity**: Modern interfaces for Bluetooth and Network management.
-- **🔊 Audio Control**: Fine-tuned volume and source management via a sleek GTK interface.
-- **🔔 Notifications**: Unified center for managing system alerts and history.
-- **⚙️ System Tweaks**: Access to core Quickshell settings, scripts, and look-and-feel adjustments.
+## ✨ Key Features
 
-## 🛠️ Tech Stack
+| Category | Description |
+| :--- | :--- |
+| **🎨 Appearance** | Synchronize system-wide colors, manage dynamic themes, and fine-tune your look. |
+| **🖼️ Wallpapers** | Integrated wallpaper manager with ultra-fast previews and categorization. |
+| **📊 System Bar** | Granular control over layout, widgets, and behavior of your desktop bars. |
+| **🌐 Connectivity** | Modern, responsive interfaces for managing Bluetooth and Network stacks. |
+| **🔊 Audio Hub** | Professional-grade volume controls and source management. |
+| **🔔 Notifications** | A unified center for managing alerts, history, and "Do Not Disturb" modes. |
+| **⚙️ Deep Tweaks** | Access core Quickshell engine settings and custom script hooks. |
 
-- **Language**: [Rust](https://www.rust-lang.org/)
-- **UI Framework**: [GTK4](https://www.gtk.org/) with [Libadwaita](https://gnome.pages.gitlab.gnome.org/libadwaita/)
-- **Core Libraries**:
-  - `tokio`: Asynchronous runtime for system interactions.
-  - `serde`: Robust configuration serialization.
-  - `glib` & `gio`: Deep integration with the Linux system bus.
+## 🚀 Getting Started
 
-## 🚀 Installation
+### Quick Install
 
-### Using the Install Script
-The easiest way to install Fuse is using the provided `install.sh` script:
+Deploy Fuse instantly using our optimized installation script:
 
 ```bash
 git clone https://github.com/alloy-team/fuse.git
@@ -39,23 +44,31 @@ chmod +x install.sh
 ./install.sh
 ```
 
-This script will:
-1. Ensure the Rust toolchain is configured.
-2. Build the binary in release mode.
-3. Install it to `/usr/local/bin` (or `~/.local/bin` if sudo is not available).
+> [!TIP]
+> The script automatically detects your environment and ensures all dependencies (including the Rust toolchain) are correctly configured.
 
-## 🧑‍💻 Development
+### Manual Build
 
-To build and run Fuse locally for development:
+For developers and enthusiasts:
 
 ```bash
-cargo run
+# Build and run immediately
+cargo run --release
 ```
 
-### Configuration Path
-Fuse stores its configuration in standard environment paths, typically:
-- `~/.config/alloy/fuse/`
+## 🛠️ Performance & Architecture
+
+Fuse is engineered for speed and reliability. By utilizing:
+- **`tokio`**: For non-blocking, asynchronous system interactions.
+- **`libadwaita`**: To provide a native, responsive, and adaptive UI.
+- **`serde`**: For lightning-fast configuration parsing and serialization.
+
+## 🧑‍💻 Contribution
+
+We welcome contributions! Whether it's adding new features, improving documentation, or reporting bugs, feel free to open a PR or Issue.
 
 ---
 
-Built with ❤️ by artwik22.
+<p align="center">
+  Built with ❤️ by <b>artwik22</b> & the Alloy Team.
+</p>

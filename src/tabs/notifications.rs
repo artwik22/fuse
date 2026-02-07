@@ -104,7 +104,167 @@ fn create_notifications_section(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
     );
     section.append(&sounds_row);
 
+    // Notification Position section
+    let position_row = create_position_row(Arc::clone(&config));
+    section.append(&position_row);
+
+    // Notification Rounding section
+    let rounding_row = create_rounding_row(Arc::clone(&config));
+    section.append(&rounding_row);
+
     section
+}
+
+fn create_rounding_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
+    let row = GtkBox::new(Orientation::Horizontal, 12);
+    row.add_css_class("settings-row");
+    row.set_hexpand(true);
+
+    let text_box = GtkBox::new(Orientation::Vertical, 2);
+    text_box.set_hexpand(true);
+
+    let title_label = Label::new(Some("Notification Rounding"));
+    title_label.add_css_class("row-title");
+    title_label.set_xalign(0.0);
+    text_box.append(&title_label);
+
+    let desc_label = Label::new(Some("Choose the corner rounding style for notifications"));
+    desc_label.add_css_class("row-description");
+    desc_label.set_xalign(0.0);
+    text_box.append(&desc_label);
+
+    row.append(&text_box);
+
+    let button_box = GtkBox::new(Orientation::Horizontal, 6);
+    button_box.set_halign(gtk4::Align::End);
+    button_box.set_valign(gtk4::Align::Center);
+
+    let current_rounding = config.lock().unwrap().notification_rounding.clone().unwrap_or_else(|| "standard".to_string());
+
+    let styles = [
+        ("None", "none"),
+        ("Standard", "standard"),
+        ("Capsule", "pill"),
+    ];
+
+    let mut buttons = Vec::new();
+
+    for (label, value) in styles {
+        let btn = gtk4::Button::with_label(label);
+        if current_rounding == value {
+            btn.add_css_class("suggested-action");
+        }
+        buttons.push((btn.clone(), value.to_string()));
+        button_box.append(&btn);
+    }
+
+    for (btn, value) in buttons.clone() {
+        let config = Arc::clone(&config);
+        let value_clone = value.to_string();
+        let buttons_clone = buttons.clone();
+        btn.connect_clicked(move |_| {
+            let mut cfg = ColorConfig::load();
+            cfg.set_notification_rounding(&value_clone);
+            if let Err(_) = cfg.save() {
+            } else {
+                *config.lock().unwrap() = cfg;
+
+                // Update UI visually
+                for (b, v) in buttons_clone.iter() {
+                    if v == &value_clone {
+                        b.add_css_class("suggested-action");
+                    } else {
+                        b.remove_css_class("suggested-action");
+                    }
+                }
+
+                gtk4::glib::timeout_add_local(std::time::Duration::from_millis(100), move || {
+                    let _ = crate::core::quickshell::notify_color_change();
+                    gtk4::glib::ControlFlow::Break
+                });
+            }
+        });
+    }
+
+    row.append(&button_box);
+    row
+}
+
+fn create_position_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
+    let row = GtkBox::new(Orientation::Horizontal, 12);
+    row.add_css_class("settings-row");
+    row.set_hexpand(true);
+
+    let text_box = GtkBox::new(Orientation::Vertical, 2);
+    text_box.set_hexpand(true);
+
+    let title_label = Label::new(Some("Notification Position"));
+    title_label.add_css_class("row-title");
+    title_label.set_xalign(0.0);
+    text_box.append(&title_label);
+
+    let desc_label = Label::new(Some("Choose where notifications appear on the screen"));
+    desc_label.add_css_class("row-description");
+    desc_label.set_xalign(0.0);
+    text_box.append(&desc_label);
+
+    row.append(&text_box);
+
+    let button_box = GtkBox::new(Orientation::Horizontal, 6);
+    button_box.set_halign(gtk4::Align::End);
+    button_box.set_valign(gtk4::Align::Center);
+
+    let current_pos = config.lock().unwrap().notification_position.clone().unwrap_or_else(|| "top".to_string());
+
+    let positions = [
+        ("Top Left", "top-left"),
+        ("Top", "top"),
+        ("Top Right", "top-right"),
+    ];
+
+    let mut buttons = Vec::new();
+
+    for (label, value) in positions {
+        let btn = gtk4::Button::with_label(label);
+        if current_pos == value {
+            btn.add_css_class("suggested-action");
+        }
+        buttons.push((btn.clone(), value.to_string()));
+        button_box.append(&btn);
+    }
+
+    for (btn, value) in buttons.clone() {
+        let config = Arc::clone(&config);
+        let value_clone = value.clone();
+        let buttons_clone = buttons.clone();
+        btn.connect_clicked(move |_| {
+            let mut cfg = ColorConfig::load();
+            cfg.set_notification_position(&value_clone);
+            if let Err(_) = cfg.save() {
+                // Handle error
+            } else {
+                *config.lock().unwrap() = cfg;
+                
+                // Update UI visually
+                for (b, v) in buttons_clone.iter() {
+                    if v == &value_clone {
+                        b.add_css_class("suggested-action");
+                    } else {
+                        b.remove_css_class("suggested-action");
+                    }
+                }
+
+                // Notify quickshell after a short delay
+                gtk4::glib::timeout_add_local(std::time::Duration::from_millis(100), move || {
+                    let _ = crate::core::quickshell::notify_color_change();
+                    gtk4::glib::ControlFlow::Break
+                });
+            }
+        });
+    }
+
+    row.append(&button_box);
+    row
 }
 
 fn create_toggle_row(

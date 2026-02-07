@@ -57,6 +57,10 @@ pub struct ColorConfig {
     pub autofloat_height: Option<u32>,
     #[serde(rename = "scriptsUseLockscreen", skip_serializing_if = "Option::is_none")]
     pub scripts_use_lockscreen: Option<bool>,
+    #[serde(rename = "notificationPosition", skip_serializing_if = "Option::is_none")]
+    pub notification_position: Option<String>,
+    #[serde(rename = "notificationRounding", skip_serializing_if = "Option::is_none")]
+    pub notification_rounding: Option<String>,
 }
 
 impl Default for ColorConfig {
@@ -90,6 +94,8 @@ impl Default for ColorConfig {
             autofloat_width: Some(1000),
             autofloat_height: Some(700),
             scripts_use_lockscreen: Some(false),
+            notification_position: Some("top".to_string()),
+            notification_rounding: Some("standard".to_string()),
         }
     }
 }
@@ -387,6 +393,20 @@ impl ColorConfig {
         } else {
             cmd.arg("");
         }
+
+        // Argument 30: notificationPosition ("top", "top-left", "top-right")
+        if let Some(ref pos) = self.notification_position {
+            cmd.arg(pos);
+        } else {
+            cmd.arg("");
+        }
+
+        // Argument 31: notificationRounding ("none", "standard", "pill")
+        if let Some(ref rounding) = self.notification_rounding {
+            cmd.arg(rounding);
+        } else {
+            cmd.arg("");
+        }
         
         let output = cmd.output()?;
         if !output.status.success() {
@@ -518,6 +538,14 @@ impl ColorConfig {
 
     pub fn set_scripts_use_lockscreen(&mut self, enabled: bool) {
         self.scripts_use_lockscreen = Some(enabled);
+    }
+
+    pub fn set_notification_position(&mut self, position: &str) {
+        self.notification_position = Some(position.to_string());
+    }
+
+    pub fn set_notification_rounding(&mut self, rounding: &str) {
+        self.notification_rounding = Some(rounding.to_string());
     }
 
     /// Set GTK_SCALE_FACTOR from ui_scale (75 -> 0.75, 100 -> 1.0, 125 -> 1.25). Call before gtk_init.
