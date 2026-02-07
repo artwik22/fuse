@@ -108,6 +108,15 @@ impl QuickshellTab {
 
         content.append(&dashboard_card);
 
+        // --- Appearance Group ---
+        add_group_header(&content, "Appearance");
+        let appearance_card = GtkBox::new(Orientation::Vertical, 0);
+        appearance_card.add_css_class("card");
+
+        appearance_card.append(&create_border_radius_row(Arc::clone(&config)));
+
+        content.append(&appearance_card);
+
         scrolled.set_child(Some(&content));
 
         Self {
@@ -622,4 +631,64 @@ fn create_dashboard_resource_row(label: &str, is_res1: bool, config: Arc<Mutex<C
     bind_click(&btn_net, "Network", is_res1, config.clone(), Box::new(update_visuals.clone()));
 
     create_card_row(label, box_)
+}
+
+fn create_border_radius_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
+    let box_ = GtkBox::new(Orientation::Horizontal, 6);
+    let current = config.lock().unwrap().quickshell_border_radius.unwrap_or(0);
+    
+    let is_none = current == 0;
+    
+    let btn_none = Button::with_label("None");
+    let btn_slight = Button::with_label("Slight");
+    
+    if is_none { btn_none.add_css_class("suggested-action"); }
+    else { btn_slight.add_css_class("suggested-action"); }
+
+    let update = {
+        let n = btn_none.clone();
+        let s = btn_slight.clone();
+        move |none: bool| {
+            if none {
+                n.add_css_class("suggested-action");
+                s.remove_css_class("suggested-action");
+            } else {
+                s.add_css_class("suggested-action");
+                n.remove_css_class("suggested-action");
+            }
+        }
+    };
+
+    {
+        let cfg_ref = config.clone();
+        let up = update.clone();
+        btn_none.connect_clicked(move |_| {
+            let mut cfg = ColorConfig::load();
+            cfg.set_quickshell_border_radius(0);
+            if cfg.save().is_ok() {
+                *cfg_ref.lock().unwrap() = cfg.clone();
+                up(true);
+                schedule_notify_color_change_ms(200);
+            }
+        });
+    }
+
+    {
+        let cfg_ref = config.clone();
+        let up = update.clone();
+        btn_slight.connect_clicked(move |_| {
+            let mut cfg = ColorConfig::load();
+            cfg.set_quickshell_border_radius(4);
+            if cfg.save().is_ok() {
+                *cfg_ref.lock().unwrap() = cfg.clone();
+                up(false);
+                schedule_notify_color_change_ms(200);
+            }
+        });
+    }
+
+    box_.append(&btn_none);
+    box_.append(&btn_slight);
+
+    create_card_row("Border Radius", box_)
 }
