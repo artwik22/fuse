@@ -1,5 +1,6 @@
 use gtk4::prelude::*;
 use gtk4::{Box as GtkBox, Orientation, Label, ScrolledWindow, Switch, Button};
+use gtk4::gio;
 use std::sync::{Arc, Mutex};
 use std::process::Command;
 
@@ -69,16 +70,26 @@ fn create_power_section() -> GtkBox {
     let section = GtkBox::new(Orientation::Vertical, 0);
     section.add_css_class("settings-section");
     
-    let is_powered = is_bluetooth_powered();
+    // Create toggle switch with initial state false (will be updated async)
     let toggle_switch = Switch::new();
-    toggle_switch.set_active(is_powered);
+    toggle_switch.set_active(false);
     toggle_switch.set_halign(gtk4::Align::End);
     toggle_switch.set_hexpand(false);
     toggle_switch.set_valign(gtk4::Align::Center);
     toggle_switch.set_vexpand(false);
-    toggle_switch.set_sensitive(true);
+    toggle_switch.set_sensitive(false); // Disabled until we know the actual state
     toggle_switch.set_can_focus(true);
     toggle_switch.set_focusable(true);
+    
+    // Async load bluetooth power state
+    let toggle_clone = toggle_switch.clone();
+    gtk4::glib::MainContext::default().spawn_local(async move {
+        let is_powered = gio::spawn_blocking(is_bluetooth_powered)
+            .await
+            .unwrap_or(false);
+        toggle_clone.set_active(is_powered);
+        toggle_clone.set_sensitive(true);
+    });
     
     {
         let toggle_switch_clone = toggle_switch.clone();
@@ -96,7 +107,7 @@ fn create_power_section() -> GtkBox {
     
     let power_row = create_toggle_row_with_switch(
         "Enable Bluetooth",
-        if is_powered { "Turn Bluetooth on or off" } else { "Turn Bluetooth on or off" },
+        "Turn Bluetooth on or off",
         toggle_switch,
     );
     power_row.set_margin_start(18);
@@ -139,16 +150,28 @@ fn create_paired_devices_section() -> GtkBox {
     devices_box.set_margin_end(0);
     devices_box.set_margin_bottom(18);
     
+    // Show loading placeholder initially
+    let loading_label = Label::new(Some("Loading…"));
+    loading_label.add_css_class("dim-label");
+    loading_label.set_margin_start(18);
+    loading_label.set_margin_end(18);
+    loading_label.set_margin_top(12);
+    loading_label.set_margin_bottom(12);
+    devices_box.append(&loading_label);
+    
     {
         let devices_box_clone = devices_box.clone();
         refresh_button.connect_clicked(move |_| {
-            refresh_paired_devices(&devices_box_clone);
+            refresh_paired_devices_async(&devices_box_clone);
         });
     }
     
     header.append(&refresh_button);
     section.append(&header);
-    refresh_paired_devices(&devices_box);
+    
+    // Async load paired devices
+    refresh_paired_devices_async(&devices_box);
+    
     section.append(&devices_box);
     
     section
@@ -391,6 +414,49 @@ fn is_device_connected(mac: &str) -> bool {
         .and_then(|output| String::from_utf8(output.stdout).ok())
         .map(|s| s.contains("Connected: yes"))
         .unwrap_or(false)
+}
+
+fn refresh_paired_devices_async(container: &GtkBox) {
+    // Clear existing devices and show loading
+    while let Some(child) = container.last_child() {
+        container.remove(&child);
+    }
+    
+    let loading_label = Label::new(Some("Loading…"));
+    loading_label.add_css_class("dim-label");
+    loading_label.set_margin_start(18);
+    loading_label.set_margin_end(18);
+    loading_label.set_margin_top(12);
+    loading_label.set_margin_bottom(12);
+    container.append(&loading_label);
+    
+    let container_clone = container.clone();
+    gtk4::glib::MainContext::default().spawn_local(async move {
+        let devices = gio::spawn_blocking(get_paired_devices)
+            .await
+            .unwrap_or_default();
+        
+        // Clear loading placeholder
+        while let Some(child) = container_clone.last_child() {
+            container_clone.remove(&child);
+        }
+        
+        if devices.is_empty() {
+            let placeholder = Label::new(Some("No paired devices"));
+            placeholder.add_css_class("dim-label");
+            placeholder.set_xalign(0.0);
+            placeholder.set_margin_start(18);
+            placeholder.set_margin_end(18);
+            placeholder.set_margin_top(12);
+            placeholder.set_margin_bottom(12);
+            container_clone.append(&placeholder);
+        } else {
+            for device in devices {
+                let row = create_device_row(&device, true);
+                container_clone.append(&row);
+            }
+        }
+    });
 }
 
 fn refresh_paired_devices(container: &GtkBox) {
