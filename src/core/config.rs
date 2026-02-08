@@ -451,8 +451,29 @@ impl ColorConfig {
             fs::create_dir_all(parent)?;
         }
 
+        // Atomic write pattern: write to temp file, sync, then rename
+        // This prevents corruption if process is killed during write
+        let temp_path = path.with_extension("json.tmp");
+        
         let json = serde_json::to_string_pretty(self)?;
-        fs::write(&path, json)?;
+        
+        // Write to temp file
+        fs::write(&temp_path, &json)?;
+        
+        // Force sync to disk BEFORE rename - critical for persistence!
+        use std::fs::OpenOptions;
+        if let Ok(file) = OpenOptions::new().write(true).open(&temp_path) {
+            file.sync_all()?;  // This ensures data is written to disk
+        }
+        
+        // Atomic rename - either succeeds completely or fails completely
+        fs::rename(&temp_path, &path)?;
+        
+        // Final sync on the actual file
+        if let Ok(file) = OpenOptions::new().write(true).open(&path) {
+            file.sync_all().ok();  // Best effort final sync
+        }
+        
         Ok(())
     }
 
