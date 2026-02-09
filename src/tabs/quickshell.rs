@@ -1,5 +1,5 @@
 use gtk4::prelude::*;
-use gtk4::{Box as GtkBox, Orientation, Label, ScrolledWindow, Switch, Button, Entry, Revealer, RevealerTransitionType};
+use gtk4::{Box as GtkBox, Orientation, Label, ScrolledWindow, Switch, Button, Entry, Revealer, RevealerTransitionType, Popover, ListBox};
 use std::sync::{Arc, Mutex};
 
 use crate::core::config::ColorConfig;
@@ -105,6 +105,7 @@ impl QuickshellTab {
         dashboard_card.append(&create_dashboard_tile_row(Arc::clone(&config)));
         dashboard_card.append(&create_dashboard_resource_row("Resource 1", true, Arc::clone(&config)));
         dashboard_card.append(&create_dashboard_resource_row("Resource 2", false, Arc::clone(&config)));
+        dashboard_card.append(&create_weather_location_row(Arc::clone(&config)));
 
         content.append(&dashboard_card);
 
@@ -436,6 +437,167 @@ fn create_github_username_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
     });
 
     create_card_row("GitHub User", entry)
+}
+fn create_weather_location_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
+    let entry = Entry::new();
+    let current = config.lock().unwrap().weather_location.clone().unwrap_or_else(|| "London".to_string());
+    entry.set_text(&current);
+    entry.set_placeholder_text(Some("City Name (e.g. London)"));
+    entry.set_width_chars(20);
+    entry.set_valign(gtk4::Align::Center);
+
+    let popover = Popover::new();
+    popover.set_parent(&entry);
+    popover.set_autohide(true);
+    popover.set_position(gtk4::PositionType::Bottom);
+
+    let listbox = ListBox::new();
+    listbox.set_selection_mode(gtk4::SelectionMode::Single);
+    popover.set_child(Some(&listbox));
+
+    // Debounce state
+    let debounce_id = Arc::new(Mutex::new(Option::<gtk4::glib::SourceId>::None));
+
+    {
+        let config = config.clone();
+        let listbox = listbox.clone();
+        let popover = popover.clone();
+        let debounce_id = debounce_id.clone();
+        let entry_weak = entry.downgrade();
+
+        entry.connect_changed(move |e| {
+            let mut db_id = debounce_id.lock().unwrap();
+            if let Some(id) = db_id.take() {
+                id.remove();
+            }
+
+            let query = e.text().to_string();
+            if query.len() < 3 {
+                popover.popdown();
+                return;
+            }
+
+            let entry_weak = entry_weak.clone();
+            let config = config.clone();
+            let listbox = listbox.clone();
+            let popover = popover.clone();
+            let query_clone = query.clone();
+
+            let new_id = gtk4::glib::timeout_add_local(std::time::Duration::from_millis(500), move || {
+                let query = query_clone.clone();
+                let listbox = listbox.clone();
+                let popover = popover.clone();
+                let config = config.clone();
+                let entry_weak = entry_weak.clone();
+
+                // Clear existing suggestions
+                while let Some(row) = listbox.first_child() {
+                    listbox.remove(&row);
+                }
+
+                // Fetch suggestions using curl (to avoid adding reqwest dependency)
+                let url = format!("https://nominatim.openstreetmap.org/search?q={}&format=json&limit=5", query);
+                
+                // Create a channel to send results back to the main thread
+                let (sender, receiver) = gtk4::glib::MainContext::channel::<Vec<String>>(gtk4::glib::Priority::default());
+                
+                // Set up the receiver on the main thread
+                let listbox_clone = listbox.clone();
+                let popover_clone = popover.clone();
+                let entry_weak_clone = entry_weak.clone();
+
+                receiver.attach(None, move |suggestions| {
+                    if let Some(_entry) = entry_weak_clone.upgrade() {
+                        for sug in suggestions {
+                            let label = Label::new(Some(&sug));
+                            label.set_margin_start(8);
+                            label.set_margin_end(8);
+                            label.set_margin_top(4);
+                            label.set_margin_bottom(4);
+                            label.set_halign(gtk4::Align::Start);
+                            listbox_clone.append(&label);
+                        }
+
+                        if listbox_clone.first_child().is_some() {
+                            popover_clone.popup();
+                        } else {
+                            popover_clone.popdown();
+                        }
+                    }
+                    gtk4::glib::ControlFlow::Break
+                });
+
+                let url = url.clone();
+                std::thread::spawn(move || {
+                    let output = std::process::Command::new("curl")
+                        .arg("-s")
+                        .arg("-H")
+                        .arg("User-Agent: Alloy-Fuse/1.0")
+                        .arg(&url)
+                        .output();
+
+                    if let Ok(output) = output {
+                        if output.status.success() {
+                            let body = String::from_utf8_lossy(&output.stdout).to_string();
+                            if let Ok(json) = serde_json::from_str::<serde_json::Value>(&body) {
+                                if let Some(arr) = json.as_array() {
+                                    let mut suggestions = Vec::new();
+                                    for item in arr {
+                                        if let Some(display_name) = item.get("display_name").and_then(|v| v.as_str()) {
+                                            suggestions.push(display_name.to_string());
+                                        }
+                                    }
+                                    let _ = sender.send(suggestions);
+                                }
+                            }
+                        }
+                    }
+                });
+
+                gtk4::glib::ControlFlow::Break
+            });
+
+            *db_id = Some(new_id);
+        });
+    }
+
+    {
+        let config = config.clone();
+        let entry_weak = entry.downgrade();
+        let popover = popover.clone();
+        listbox.connect_row_activated(move |_, row| {
+            if let Some(label) = row.child().and_then(|w| w.downcast::<Label>().ok()) {
+                let full_name = label.text().to_string();
+                // Take only the first part before the comma as the location for wttr.in
+                let city = full_name.split(',').next().unwrap_or(&full_name).trim();
+                
+                if let Some(entry) = entry_weak.upgrade() {
+                    entry.set_text(city);
+                    
+                    let mut cfg = ColorConfig::load();
+                    cfg.set_weather_location(city);
+                    if cfg.save().is_ok() {
+                        *config.lock().unwrap() = cfg.clone();
+                        schedule_notify_color_change_ms(200);
+                    }
+                }
+                popover.popdown();
+            }
+        });
+    }
+
+    // Also update config on manual entry enter
+    entry.connect_activate(move |e| {
+        let city = e.text().to_string();
+        let mut cfg = ColorConfig::load();
+        cfg.set_weather_location(&city);
+        if cfg.save().is_ok() {
+            *config.lock().unwrap() = cfg.clone();
+            schedule_notify_color_change_ms(200);
+        }
+    });
+
+    create_card_row("Weather City", entry)
 }
 
 fn create_dashboard_position_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {

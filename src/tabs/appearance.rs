@@ -601,7 +601,7 @@ fn create_preset_card_with_variants(
         let mut cfg = ColorConfig::load();
         cfg.update_colors(&dark_bg, &dark_primary, &dark_secondary, &dark_text, &dark_accent);
         cfg.set_preset(&name);
-        if let Err(e) = cfg.save() {
+        if let Err(_e) = cfg.save() {
         } else {
             *config.lock().unwrap() = cfg.clone();
             schedule_notify_color_change_ms(200);
@@ -683,7 +683,7 @@ fn create_preset_card_single(
         let mut cfg = ColorConfig::load();
         cfg.update_colors(&bg, &primary, &secondary, &text, &accent);
         cfg.set_preset(&name);
-        if let Err(e) = cfg.save() {
+        if let Err(_e) = cfg.save() {
         } else {
             *config.lock().unwrap() = cfg.clone();
             schedule_notify_color_change_ms(200);

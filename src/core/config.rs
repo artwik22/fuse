@@ -65,6 +65,8 @@ pub struct ColorConfig {
     pub quickshell_border_radius: Option<u8>,
     #[serde(rename = "notificationSound", skip_serializing_if = "Option::is_none")]
     pub notification_sound: Option<String>,
+    #[serde(rename = "weatherLocation", skip_serializing_if = "Option::is_none")]
+    pub weather_location: Option<String>,
 }
 
 impl Default for ColorConfig {
@@ -102,6 +104,7 @@ impl Default for ColorConfig {
             notification_rounding: Some("standard".to_string()),
             quickshell_border_radius: Some(0),
             notification_sound: Some("message.oga".to_string()),
+            weather_location: Some("London".to_string()),
         }
     }
 }
@@ -428,6 +431,13 @@ impl ColorConfig {
             cmd.arg("");
         }
         
+        // Argument 34: weatherLocation
+        if let Some(ref loc) = self.weather_location {
+            cmd.arg(loc);
+        } else {
+            cmd.arg("");
+        }
+        
         let output = cmd.output()?;
         if !output.status.success() {
             // Fallback to direct save on error
@@ -595,6 +605,10 @@ impl ColorConfig {
 
     pub fn set_notification_sound(&mut self, sound: &str) {
         self.notification_sound = Some(sound.to_string());
+    }
+
+    pub fn set_weather_location(&mut self, location: &str) {
+        self.weather_location = Some(location.to_string());
     }
 
     /// Set GTK_SCALE_FACTOR from ui_scale (75 -> 0.75, 100 -> 1.0, 125 -> 1.25). Call before gtk_init.
