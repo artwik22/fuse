@@ -1,5 +1,5 @@
 use gtk4::prelude::*;
-use gtk4::{Box as GtkBox, Orientation, Label, ScrolledWindow, Switch, Button, Entry, Revealer, RevealerTransitionType, Popover, ListBox};
+use gtk4::{Box as GtkBox, Orientation, Label, ScrolledWindow, Switch, Button, Entry, Popover, ListBox};
 use std::sync::{Arc, Mutex};
 
 use crate::core::config::ColorConfig;
@@ -56,31 +56,6 @@ impl QuickshellTab {
         let scaling_row = create_scaling_row(Arc::clone(&config));
         system_card.append(&scaling_row);
 
-        // Notifications Logic
-        let (notif_row, notif_switch) = create_notifications_row(Arc::clone(&config));
-        system_card.append(&notif_row);
-
-        // Notification Sounds Row (Conditional)
-        let sounds_row = create_notification_sounds_row(Arc::clone(&config));
-        
-        // Wrap sounds row in a Revealer
-        let revealer = Revealer::new();
-        revealer.set_transition_type(RevealerTransitionType::SlideDown);
-        revealer.set_transition_duration(250);
-        revealer.set_child(Some(&sounds_row));
-        
-        // Bind visibility
-        let is_active = notif_switch.is_active();
-        revealer.set_reveal_child(is_active);
-        
-        {
-            let revealer = revealer.clone();
-            notif_switch.connect_active_notify(move |sw| {
-                revealer.set_reveal_child(sw.is_active());
-            });
-        }
-
-        system_card.append(&revealer);
         content.append(&system_card);
 
 
@@ -231,48 +206,6 @@ fn create_scaling_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
     box_.append(&btn_125);
 
     create_card_row("UI Scale", box_)
-}
-
-fn create_notifications_row(config: Arc<Mutex<ColorConfig>>) -> (GtkBox, Switch) {
-    let switch = Switch::new();
-    let current = config.lock().unwrap().notifications_enabled.unwrap_or(true);
-    switch.set_active(current);
-    switch.set_valign(gtk4::Align::Center);
-
-    {
-        let config = config.clone();
-        switch.connect_active_notify(move |s| {
-            let mut cfg = ColorConfig::load();
-            cfg.set_notifications_enabled(s.is_active());
-            if cfg.save().is_ok() {
-                *config.lock().unwrap() = cfg.clone();
-                schedule_notify_color_change_ms(200);
-            }
-        });
-    }
-
-    (create_card_row("Show Notifications", switch.clone()), switch)
-}
-
-fn create_notification_sounds_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
-    let switch = Switch::new();
-    let current = config.lock().unwrap().notification_sounds_enabled.unwrap_or(true);
-    switch.set_active(current);
-    switch.set_valign(gtk4::Align::Center);
-
-    {
-        let config = config.clone();
-        switch.connect_active_notify(move |s| {
-            let mut cfg = ColorConfig::load();
-            cfg.set_notification_sounds_enabled(s.is_active());
-            if cfg.save().is_ok() {
-                *config.lock().unwrap() = cfg.clone();
-                schedule_notify_color_change_ms(200);
-            }
-        });
-    }
-
-    create_card_row("Notification Sounds", switch)
 }
 
 fn create_sidebar_visible_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
@@ -488,7 +421,7 @@ fn create_weather_location_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
                 let query = query_clone.clone();
                 let listbox = listbox.clone();
                 let popover = popover.clone();
-                let config = config.clone();
+                let _config = config.clone();
                 let entry_weak = entry_weak.clone();
 
                 // Clear existing suggestions

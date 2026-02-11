@@ -101,24 +101,33 @@ impl AppearanceTab {
         title.add_css_class("title");
         title.set_xalign(0.0);
         title.set_halign(gtk4::Align::Start);
-        content.append(&title);
+        let add_group_header = |box_: &GtkBox, label: &str| {
+            let l = Label::new(Some(label));
+            l.add_css_class("group-header");
+            l.set_halign(gtk4::Align::Start);
+            box_.append(&l);
+        };
 
-        // Single-column layout (like Network/Bluetooth) so it scrolls well at any width
-        let style_row = create_style_row(Arc::clone(&config));
-        style_row.set_hexpand(true);
-        content.append(&style_row);
+        // --- Theme & Style Group ---
+        add_group_header(&content, "Style");
+        let theme_card = GtkBox::new(Orientation::Vertical, 0);
+        theme_card.add_css_class("card");
+        theme_card.append(&create_style_row(Arc::clone(&config)));
+        content.append(&theme_card);
 
+        // --- Color Presets Group ---
+        add_group_header(&content, "Color Presets");
+        let presets_card = GtkBox::new(Orientation::Vertical, 0);
+        presets_card.add_css_class("card");
+        presets_card.append(&create_colors_section(Arc::clone(&config)));
+        content.append(&presets_card);
 
-
-        let colors_section = create_colors_section(Arc::clone(&config));
-        colors_section.set_hexpand(true);
-        colors_section.set_margin_top(24);
-        content.append(&colors_section);
-
-        let background_section = create_background_section(Arc::clone(&config));
-        background_section.set_hexpand(true);
-        background_section.set_margin_top(24);
-        content.append(&background_section);
+        // --- Wallpapers Group ---
+        add_group_header(&content, "Wallpapers");
+        let wallpapers_card = GtkBox::new(Orientation::Vertical, 0);
+        wallpapers_card.add_css_class("card");
+        wallpapers_card.append(&create_background_section(Arc::clone(&config)));
+        content.append(&wallpapers_card);
 
         scrolled.set_child(Some(&content));
 
@@ -141,26 +150,15 @@ fn create_style_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
     
     // --- THEME COLUMN ---
     let theme_col = GtkBox::new(Orientation::Vertical, 0);
-    theme_col.add_css_class("settings-section");
     theme_col.set_hexpand(true);
     
-    // Theme Header
+    // Theme Header (Optional description)
     let theme_header = GtkBox::new(Orientation::Vertical, 0);
-    let theme_title = Label::new(Some("Theme"));
-    theme_title.add_css_class("section-title");
-    theme_title.set_xalign(0.0);
-    theme_title.set_margin_start(20);
-    theme_title.set_margin_end(20);
-    theme_title.set_margin_top(20);
-    theme_title.set_margin_bottom(6);
-    theme_header.append(&theme_title);
-
     let theme_desc = Label::new(Some("Select interface mode"));
-    theme_desc.add_css_class("section-description");
+    theme_desc.add_css_class("row-description");
     theme_desc.set_xalign(0.0);
-    theme_desc.set_margin_start(20);
-    theme_desc.set_margin_end(20);
-    theme_desc.set_margin_bottom(16);
+    theme_desc.set_margin_start(16);
+    theme_desc.set_margin_bottom(12);
     theme_header.append(&theme_desc);
     theme_col.append(&theme_header);
 
@@ -265,26 +263,15 @@ fn create_style_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
     
     // --- ROUNDING COLUMN ---
     let rounding_col = GtkBox::new(Orientation::Vertical, 0);
-    rounding_col.add_css_class("settings-section");
     rounding_col.set_hexpand(true);
 
     // Rounding Header
     let rounding_header = GtkBox::new(Orientation::Vertical, 0);
-    let rounding_title = Label::new(Some("Corner Rounding"));
-    rounding_title.add_css_class("section-title");
-    rounding_title.set_xalign(0.0);
-    rounding_title.set_margin_start(20);
-    rounding_title.set_margin_end(20);
-    rounding_title.set_margin_top(20);
-    rounding_title.set_margin_bottom(6);
-    rounding_header.append(&rounding_title);
-
     let rounding_desc = Label::new(Some("Select corner style"));
-    rounding_desc.add_css_class("section-description");
+    rounding_desc.add_css_class("row-description");
     rounding_desc.set_xalign(0.0);
-    rounding_desc.set_margin_start(20);
-    rounding_desc.set_margin_end(20);
-    rounding_desc.set_margin_bottom(16);
+    rounding_desc.set_margin_start(16);
+    rounding_desc.set_margin_bottom(12);
     rounding_header.append(&rounding_desc);
     rounding_col.append(&rounding_header);
 
@@ -391,14 +378,12 @@ fn create_theme_card(name: &str, theme: &str, is_selected: bool) -> Button {
 fn create_colors_section(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
     add_preset_colors_provider_to_display();
 
-    let section = GtkBox::new(Orientation::Vertical, 0);
-    section.add_css_class("settings-section");
+    let section = GtkBox::new(Orientation::Vertical, 12);
     section.set_hexpand(true);
+    section.set_margin_top(12);
+    section.set_margin_bottom(12);
 
-    // Determine current theme to show only matching variant
-    let current_config = config.lock().unwrap();
-    let current_bg = current_config.background.clone();
-    drop(current_config);
+    let current_bg = config.lock().unwrap().background.clone();
     
     // Helper function to check if color is light
     let is_light = |color: &str| -> bool {
@@ -417,75 +402,42 @@ fn create_colors_section(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
     };
     
     let is_current_light = is_light(&current_bg);
-    let theme_label = if is_current_light { "Light" } else { "Dark" };
 
-    // Section header
-    let header = GtkBox::new(Orientation::Vertical, 0);
-    let section_title = Label::new(Some("Color Presets"));
-    section_title.add_css_class("section-title");
-    section_title.set_xalign(0.0);
-    section_title.set_margin_start(20);
-    section_title.set_margin_end(20);
-    section_title.set_margin_top(20);
-    section_title.set_margin_bottom(6);
-    header.append(&section_title);
-
-    let desc = Label::new(Some(&format!("Choose from predefined color schemes (showing {} theme)", theme_label)));
-    desc.add_css_class("section-description");
-    desc.set_xalign(0.0);
-    desc.set_margin_start(20);
-    desc.set_margin_end(20);
-    desc.set_margin_bottom(16);
-    header.append(&desc);
-
-    // Presets container with FlowBox - responsive, better layout
+    // Presets FlowBox
     let flowbox = FlowBox::new();
     flowbox.set_column_spacing(16);
     flowbox.set_row_spacing(16);
     flowbox.set_halign(gtk4::Align::Fill);
     flowbox.set_hexpand(true);
-    flowbox.set_vexpand(true);
-    // Responsive: adjust columns based on available width (2-4 columns for better display)
     flowbox.set_max_children_per_line(4);
     flowbox.set_min_children_per_line(2);
     flowbox.set_selection_mode(gtk4::SelectionMode::None);
     flowbox.set_homogeneous(true);
 
-    // Group presets by name and create cards with only current theme variant
     let mut preset_groups: HashMap<&str, Vec<(&str, &str, &str, &str, &str, &str, &str)>> = HashMap::new();
     for preset in COLOR_PRESETS.iter() {
-        let (name, theme, bg, primary, secondary, text, accent) = *preset;
-        preset_groups.entry(name).or_insert_with(Vec::new).push((name, theme, bg, primary, secondary, text, accent));
+        preset_groups.entry(preset.0).or_insert_with(Vec::new).push(*preset);
     }
 
     for (name, variants) in preset_groups.iter() {
-        // Find variant matching current theme
-        let matching_variant = if is_current_light {
-            variants.iter().find(|v| v.1 == "light")
-        } else {
-            variants.iter().find(|v| v.1 == "dark")
-        };
-        
+        let matching_variant = variants.iter().find(|v| v.1 == (if is_current_light { "light" } else { "dark" }));
         if let Some(variant) = matching_variant {
-            let preset_card = create_preset_card_single(
+            flowbox.append(&create_preset_card_single(
                 name,
-                variant.2, variant.3, variant.4, variant.5, variant.6, // colors
-                variant.1, // theme name
+                variant.2, variant.3, variant.4, variant.5, variant.6,
+                variant.1,
                 Arc::clone(&config),
-            );
-            flowbox.append(&preset_card);
+            ));
         }
     }
 
-    let presets_container = GtkBox::new(Orientation::Vertical, 0);
-    presets_container.set_margin_start(20);
-    presets_container.set_margin_end(20);
-    presets_container.set_margin_bottom(20);
-    presets_container.append(&flowbox);
+    let container = GtkBox::new(Orientation::Vertical, 0);
+    container.set_margin_start(16);
+    container.set_margin_end(16);
+    container.set_margin_bottom(16);
+    container.append(&flowbox);
 
-    section.append(&header);
-    section.append(&presets_container);
-
+    section.append(&container);
     section
 }
 
@@ -695,38 +647,20 @@ fn create_preset_card_single(
 
 fn create_background_section(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
     let section = GtkBox::new(Orientation::Vertical, 0);
-    section.add_css_class("settings-section");
     section.set_hexpand(true);
 
-    // Section header with title and Show more button
-    let header = GtkBox::new(Orientation::Horizontal, 0);
-    header.set_margin_start(20);
-    header.set_margin_end(20);
-    header.set_margin_top(20);
-    header.set_margin_bottom(16);
-    header.set_valign(gtk4::Align::Center);
-
-    let section_title = Label::new(Some("Wallpapers"));
-    section_title.add_css_class("section-title");
-    section_title.set_xalign(0.0);
-    section_title.set_hexpand(true);
-    section_title.set_halign(gtk4::Align::Start);
-    header.append(&section_title);
-
-    // Create responsive container and empty FlowBoxes; populate from background
+    // Grid container
     let grid_container = GtkBox::new(Orientation::Vertical, 12);
-    grid_container.set_margin_start(20);
-    grid_container.set_margin_end(20);
-    grid_container.set_margin_bottom(20);
-    grid_container.set_hexpand(true);
-    grid_container.set_vexpand(true);
+    grid_container.set_margin_start(16);
+    grid_container.set_margin_end(16);
+    grid_container.set_margin_bottom(16);
+    grid_container.set_margin_top(12);
 
     let flowbox = FlowBox::new();
     flowbox.set_column_spacing(12);
     flowbox.set_row_spacing(12);
     flowbox.set_halign(gtk4::Align::Fill);
     flowbox.set_hexpand(true);
-    flowbox.set_vexpand(true);
     flowbox.set_max_children_per_line(3);
     flowbox.set_min_children_per_line(3);
     flowbox.set_selection_mode(gtk4::SelectionMode::None);
@@ -737,7 +671,6 @@ fn create_background_section(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
     expanded_flowbox.set_row_spacing(12);
     expanded_flowbox.set_halign(gtk4::Align::Fill);
     expanded_flowbox.set_hexpand(true);
-    expanded_flowbox.set_vexpand(true);
     expanded_flowbox.set_max_children_per_line(3);
     expanded_flowbox.set_min_children_per_line(3);
     expanded_flowbox.set_selection_mode(gtk4::SelectionMode::None);
@@ -757,30 +690,22 @@ fn create_background_section(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
         })
         .await
         .expect("spawn_blocking");
-        for wallpaper_path in all_wallpapers.iter().take(15) {
-            let is_selected = current_wallpaper
-                .as_ref()
-                .map(|w| w == wallpaper_path.to_string_lossy().as_ref())
-                .unwrap_or(false);
+        
+        for (i, wallpaper_path) in all_wallpapers.iter().enumerate() {
+            let is_selected = current_wallpaper.as_ref().map(|w| w == wallpaper_path.to_string_lossy().as_ref()).unwrap_or(false);
             let tile = create_wallpaper_tile(wallpaper_path, is_selected, Arc::clone(&config_c));
-            flowbox_c.append(&tile);
-        }
-        for wallpaper_path in all_wallpapers.iter() {
-            let is_selected = current_wallpaper
-                .as_ref()
-                .map(|w| w == wallpaper_path.to_string_lossy().as_ref())
-                .unwrap_or(false);
-            let tile = create_wallpaper_tile(wallpaper_path, is_selected, Arc::clone(&config_c));
+            if i < 15 { flowbox_c.append(&tile); }
             expanded_c.append(&tile);
         }
     });
 
     grid_container.append(&flowbox);
 
-    let show_more_button = Button::with_label("Show more");
+    let show_more_button = Button::with_label("Show more Wallpapers");
     show_more_button.add_css_class("flat");
-    show_more_button.add_css_class("expand-wallpapers-button");
     show_more_button.set_halign(gtk4::Align::End);
+    show_more_button.set_margin_bottom(12);
+    show_more_button.set_margin_end(16);
 
     let expanded_flowbox_clone = expanded_flowbox.clone();
     let flowbox_clone = flowbox.clone();
@@ -788,20 +713,13 @@ fn create_background_section(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
         let is_visible = expanded_flowbox_clone.is_visible();
         expanded_flowbox_clone.set_visible(!is_visible);
         flowbox_clone.set_visible(is_visible);
-        if is_visible {
-            btn.set_label("Show more");
-        } else {
-            btn.set_label("Show less");
-        }
+        btn.set_label(if is_visible { "Show more Wallpapers" } else { "Show less" });
     });
 
-    header.append(&show_more_button);
-
     grid_container.append(&expanded_flowbox);
+    grid_container.append(&show_more_button);
 
-    section.append(&header);
     section.append(&grid_container);
-
     section
 }
 
