@@ -67,6 +67,8 @@ pub struct ColorConfig {
     pub notification_sound: Option<String>,
     #[serde(rename = "weatherLocation", skip_serializing_if = "Option::is_none")]
     pub weather_location: Option<String>,
+    #[serde(rename = "floatingDashboard", skip_serializing_if = "Option::is_none")]
+    pub floating_dashboard: Option<bool>,
 }
 
 impl Default for ColorConfig {
@@ -105,6 +107,7 @@ impl Default for ColorConfig {
             quickshell_border_radius: Some(0),
             notification_sound: Some("message.oga".to_string()),
             weather_location: Some("London".to_string()),
+            floating_dashboard: Some(true),
         }
     }
 }
@@ -438,6 +441,13 @@ impl ColorConfig {
             cmd.arg("");
         }
         
+        // Argument 35: floatingDashboard
+        if let Some(enabled) = self.floating_dashboard {
+            cmd.arg(if enabled { "true" } else { "false" });
+        } else {
+            cmd.arg("");
+        }
+        
         let output = cmd.output()?;
         if !output.status.success() {
             // Fallback to direct save on error
@@ -609,6 +619,10 @@ impl ColorConfig {
 
     pub fn set_weather_location(&mut self, location: &str) {
         self.weather_location = Some(location.to_string());
+    }
+
+    pub fn set_floating_dashboard(&mut self, enabled: bool) {
+        self.floating_dashboard = Some(enabled);
     }
 
     /// Set GTK_SCALE_FACTOR from ui_scale (75 -> 0.75, 100 -> 1.0, 125 -> 1.25). Call before gtk_init.

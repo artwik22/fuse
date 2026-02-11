@@ -102,6 +102,7 @@ impl QuickshellTab {
         dashboard_card.add_css_class("card");
 
         dashboard_card.append(&create_dashboard_position_row(Arc::clone(&config)));
+        dashboard_card.append(&create_floating_dashboard_row(Arc::clone(&config)));
         dashboard_card.append(&create_dashboard_tile_row(Arc::clone(&config)));
         dashboard_card.append(&create_dashboard_resource_row("Resource 1", true, Arc::clone(&config)));
         dashboard_card.append(&create_dashboard_resource_row("Resource 2", false, Arc::clone(&config)));
@@ -853,4 +854,25 @@ fn create_border_radius_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
     box_.append(&btn_slight);
 
     create_card_row("Border Radius", box_)
+}
+
+fn create_floating_dashboard_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
+    let switch = Switch::new();
+    let current = config.lock().unwrap().floating_dashboard.unwrap_or(true);
+    switch.set_active(current);
+    switch.set_valign(gtk4::Align::Center);
+
+    {
+        let config = config.clone();
+        switch.connect_active_notify(move |s| {
+            let mut cfg = ColorConfig::load();
+            cfg.set_floating_dashboard(s.is_active());
+            if cfg.save().is_ok() {
+                *config.lock().unwrap() = cfg.clone();
+                schedule_notify_color_change_ms(200);
+            }
+        });
+    }
+
+    create_card_row("Floating Style", switch)
 }
