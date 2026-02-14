@@ -144,7 +144,7 @@ impl AppearanceTab {
 
 fn create_style_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
     // Single row container, with spacing
-    let container = GtkBox::new(Orientation::Horizontal, 24);
+    let container = GtkBox::new(Orientation::Vertical, 24);
     // Expand to fill width
     container.set_hexpand(true);
     
@@ -305,6 +305,7 @@ fn create_style_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
         rounded_button.connect_clicked(move |btn| {
             let mut cfg = ColorConfig::load();
             cfg.set_rounding("rounded");
+            cfg.set_quickshell_border_radius(6);
             if let Err(_e) = cfg.save() {
             } else {
                 *config.lock().unwrap() = cfg.clone();
@@ -321,6 +322,7 @@ fn create_style_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
         sharp_button.connect_clicked(move |btn| {
             let mut cfg = ColorConfig::load();
             cfg.set_rounding("sharp");
+            cfg.set_quickshell_border_radius(0);
             if let Err(_e) = cfg.save() {
             } else {
                 *config.lock().unwrap() = cfg.clone();

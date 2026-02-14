@@ -130,21 +130,26 @@ impl ColorConfig {
             }
         }
 
-        // 3. Fallback to ~/.config/sharpshell/colors.json
+        // 3. Fallback to ~/.config/sharpshell/colors.json (legacy support only if it exists)
         if let Some(home) = dirs::home_dir() {
             let path = home.join(".config").join("sharpshell").join("colors.json");
             if path.exists() {
                 return path;
             }
-            // Create directory if it doesn't exist
+        }
+
+        // 4. Default to ~/.config/alloy/colors.json
+        if let Some(home) = dirs::home_dir() {
+            let path = home.join(".config").join("alloy").join("colors.json");
+            // Ensure directory exists
             if let Some(parent) = path.parent() {
                 let _ = fs::create_dir_all(parent);
             }
             return path;
         }
 
-        // Last resort: /tmp/sharpshell/colors.json
-        PathBuf::from("/tmp/sharpshell/colors.json")
+        // Last resort: /tmp/alloy/colors.json
+        PathBuf::from("/tmp/alloy/colors.json")
     }
 
     pub fn load() -> Self {
@@ -207,28 +212,19 @@ impl ColorConfig {
         let path = Self::get_config_path();
         let path_str = path.to_string_lossy();
         
-        // Try to find Python script: alloy config -> alloy/spark/scripts, then QUICKSHELL_PROJECT_PATH, then sharpshell
+        // Try to find Python script:
+        // Priority 1: ~/.config/alloy/dart/scripts/save-colors.py (New standard location)
+        // Priority 2: QUICKSHELL_PROJECT_PATH/scripts/save-colors.py
+        // Priority 3: ~/.config/sharpshell/scripts/save-colors.py (Legacy)
+        
         let script_path = {
-            let path = Self::get_config_path();
-            if let Some(parent) = path.parent() {
-                if parent.ends_with("alloy") {
-                    let alloy_script = parent.join("spark").join("scripts").join("save-colors.py");
-                    if alloy_script.exists() {
-                        alloy_script
-                    } else if let Ok(project_path) = std::env::var("QUICKSHELL_PROJECT_PATH") {
-                        PathBuf::from(project_path).join("scripts").join("save-colors.py")
-                    } else if let Some(home) = dirs::home_dir() {
-                        home.join(".config").join("sharpshell").join("scripts").join("save-colors.py")
-                    } else {
-                        return self.save_direct();
-                    }
-                } else if let Ok(project_path) = std::env::var("QUICKSHELL_PROJECT_PATH") {
-                    PathBuf::from(project_path).join("scripts").join("save-colors.py")
-                } else if let Some(home) = dirs::home_dir() {
-                    home.join(".config").join("sharpshell").join("scripts").join("save-colors.py")
-                } else {
-                    return self.save_direct();
-                }
+            let mut candidate = PathBuf::new();
+            if let Some(home) = dirs::home_dir() {
+                candidate = home.join(".config").join("alloy").join("dart").join("scripts").join("save-colors.py");
+            }
+            
+            if candidate.exists() {
+                candidate
             } else if let Ok(project_path) = std::env::var("QUICKSHELL_PROJECT_PATH") {
                 PathBuf::from(project_path).join("scripts").join("save-colors.py")
             } else if let Some(home) = dirs::home_dir() {
