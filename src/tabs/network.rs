@@ -1,5 +1,5 @@
 use gtk4::prelude::*;
-use gtk4::{Box as GtkBox, Orientation, Label, ScrolledWindow, Switch, Button};
+use gtk4::{Box as GtkBox, Orientation, Label, ScrolledWindow, Switch};
 use gtk4::gio;
 use std::sync::{Arc, Mutex};
 use std::process::Command;

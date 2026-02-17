@@ -69,6 +69,16 @@ pub struct ColorConfig {
     pub weather_location: Option<String>,
     #[serde(rename = "floatingDashboard", skip_serializing_if = "Option::is_none")]
     pub floating_dashboard: Option<bool>,
+    #[serde(rename = "lockscreenMediaEnabled", skip_serializing_if = "Option::is_none")]
+    pub lockscreen_media_enabled: Option<bool>,
+    #[serde(rename = "lockscreenWeatherEnabled", skip_serializing_if = "Option::is_none")]
+    pub lockscreen_weather_enabled: Option<bool>,
+    #[serde(rename = "lockscreenBatteryEnabled", skip_serializing_if = "Option::is_none")]
+    pub lockscreen_battery_enabled: Option<bool>,
+    #[serde(rename = "lockscreenCalendarEnabled", skip_serializing_if = "Option::is_none")]
+    pub lockscreen_calendar_enabled: Option<bool>,
+    #[serde(rename = "lockscreenNetworkEnabled", skip_serializing_if = "Option::is_none")]
+    pub lockscreen_network_enabled: Option<bool>,
 }
 
 impl Default for ColorConfig {
@@ -108,6 +118,12 @@ impl Default for ColorConfig {
             notification_sound: Some("message.oga".to_string()),
             weather_location: Some("London".to_string()),
             floating_dashboard: Some(true),
+
+            lockscreen_media_enabled: Some(true),
+            lockscreen_weather_enabled: Some(true),
+            lockscreen_battery_enabled: Some(true),
+            lockscreen_calendar_enabled: Some(true),
+            lockscreen_network_enabled: Some(false),
         }
     }
 }
@@ -443,6 +459,34 @@ impl ColorConfig {
         } else {
             cmd.arg("");
         }
+
+        // Lockscreen Widgets (36-41)
+        if let Some(enabled) = self.lockscreen_media_enabled {
+            cmd.arg(if enabled { "true" } else { "false" });
+        } else {
+            cmd.arg("");
+        }
+        if let Some(enabled) = self.lockscreen_weather_enabled {
+            cmd.arg(if enabled { "true" } else { "false" });
+        } else {
+            cmd.arg("");
+        }
+        if let Some(enabled) = self.lockscreen_battery_enabled {
+            cmd.arg(if enabled { "true" } else { "false" });
+        } else {
+            cmd.arg("");
+        }
+
+        if let Some(enabled) = self.lockscreen_calendar_enabled {
+            cmd.arg(if enabled { "true" } else { "false" });
+        } else {
+            cmd.arg("");
+        }
+        if let Some(enabled) = self.lockscreen_network_enabled {
+            cmd.arg(if enabled { "true" } else { "false" });
+        } else {
+            cmd.arg("");
+        }
         
         let output = cmd.output()?;
         if !output.status.success() {
@@ -619,6 +663,28 @@ impl ColorConfig {
 
     pub fn set_floating_dashboard(&mut self, enabled: bool) {
         self.floating_dashboard = Some(enabled);
+    }
+
+    pub fn set_lockscreen_media_enabled(&mut self, enabled: bool) {
+        self.lockscreen_media_enabled = Some(enabled);
+    }
+    
+    pub fn set_lockscreen_weather_enabled(&mut self, enabled: bool) {
+        self.lockscreen_weather_enabled = Some(enabled);
+    }
+    
+    pub fn set_lockscreen_battery_enabled(&mut self, enabled: bool) {
+        self.lockscreen_battery_enabled = Some(enabled);
+    }
+    
+
+    
+    pub fn set_lockscreen_calendar_enabled(&mut self, enabled: bool) {
+        self.lockscreen_calendar_enabled = Some(enabled);
+    }
+    
+    pub fn set_lockscreen_network_enabled(&mut self, enabled: bool) {
+        self.lockscreen_network_enabled = Some(enabled);
     }
 
     /// Set GTK_SCALE_FACTOR from ui_scale (75 -> 0.75, 100 -> 1.0, 125 -> 1.25). Call before gtk_init.

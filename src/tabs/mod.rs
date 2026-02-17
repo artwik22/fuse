@@ -7,4 +7,7 @@ pub mod network;
 pub mod notifications;
 pub mod about;
 pub mod quickshell;
+pub mod quickshell_sidebar;
+pub mod quickshell_dashboard;
 pub mod scripts;
+pub mod lockscreen;

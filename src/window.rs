@@ -12,19 +12,23 @@ use gtk4::glib;
 
 use crate::core::config::ColorConfig;
 use crate::tabs::{appearance::AppearanceTab,
-                  system::SystemTab, audio::AudioTab, blink::BlinkTab, bluetooth::BluetoothTab, network::NetworkTab, notifications::NotificationsTab, about::AboutTab, quickshell::QuickshellTab, scripts::ScriptsTab};
+                  system::SystemTab, audio::AudioTab, blink::BlinkTab, bluetooth::BluetoothTab, network::NetworkTab, notifications::NotificationsTab, about::AboutTab, 
+                  quickshell::QuickshellTab, quickshell_sidebar::QuickshellSidebarTab, quickshell_dashboard::QuickshellDashboardTab,
+                  scripts::ScriptsTab, lockscreen::LockScreenTab};
 
-const LAZY_TAB_NAMES: &[&str] = &["network", "appearance", "system"];
+const LAZY_TAB_NAMES: &[&str] = &["network", "appearance", "system", "lockscreen"];
 
 pub struct FuseWindow {
     window: ApplicationWindow,
     _config: Arc<Mutex<ColorConfig>>,
     _stack: Stack,
     _lazy_built: Rc<RefCell<HashSet<String>>>,
-    _lazy_placeholders: Rc<RefCell<(Option<GtkBox>, Option<GtkBox>, Option<GtkBox>)>>,
+    _lazy_placeholders: Rc<RefCell<(Option<GtkBox>, Option<GtkBox>, Option<GtkBox>, Option<GtkBox>)>>,
     _lazy_network: Rc<RefCell<Option<NetworkTab>>>,
     _lazy_appearance: Rc<RefCell<Option<AppearanceTab>>>,
+
     _lazy_system: Rc<RefCell<Option<SystemTab>>>,
+    _lazy_lockscreen: Rc<RefCell<Option<LockScreenTab>>>,
 }
 
 impl FuseWindow {
@@ -91,17 +95,21 @@ impl FuseWindow {
             Some(create_lazy_placeholder()),
             Some(create_lazy_placeholder()),
             Some(create_lazy_placeholder()),
+            Some(create_lazy_placeholder()),
         )));
         let lazy_network = Rc::new(RefCell::new(None));
         let lazy_appearance = Rc::new(RefCell::new(None));
         let lazy_system = Rc::new(RefCell::new(None));
+        let lazy_lockscreen = Rc::new(RefCell::new(None));
 
         let config_for_notify = Arc::clone(&config);
         let built = Rc::clone(&lazy_built);
         let placeholders_notify = Rc::clone(&lazy_placeholders);
         let ln = Rc::clone(&lazy_network);
         let la = Rc::clone(&lazy_appearance);
+
         let ls = Rc::clone(&lazy_system);
+        let ll = Rc::clone(&lazy_lockscreen);
         stack.connect_closure(
             "notify::visible-child-name",
             false,
@@ -113,7 +121,9 @@ impl FuseWindow {
                     &placeholders_notify,
                     &ln,
                     &la,
+
                     &ls,
+                    &ll,
                 );
             }),
         );
@@ -130,6 +140,7 @@ impl FuseWindow {
             _lazy_network: lazy_network,
             _lazy_appearance: lazy_appearance,
             _lazy_system: lazy_system,
+            _lazy_lockscreen: lazy_lockscreen,
         }
     }
 
@@ -158,10 +169,12 @@ fn on_visible_child_maybe_build_lazy(
     stack: &Stack,
     config: &Arc<Mutex<ColorConfig>>,
     built: &Rc<RefCell<HashSet<String>>>,
-    placeholders: &Rc<RefCell<(Option<GtkBox>, Option<GtkBox>, Option<GtkBox>)>>,
+    placeholders: &Rc<RefCell<(Option<GtkBox>, Option<GtkBox>, Option<GtkBox>, Option<GtkBox>)>>,
     lazy_network: &Rc<RefCell<Option<NetworkTab>>>,
     lazy_appearance: &Rc<RefCell<Option<AppearanceTab>>>,
+
     lazy_system: &Rc<RefCell<Option<SystemTab>>>,
+    lazy_lockscreen: &Rc<RefCell<Option<LockScreenTab>>>,
 ) {
     let Some(name) = stack.visible_child_name() else { return };
     let name = name.as_str();
@@ -202,6 +215,17 @@ fn on_visible_child_maybe_build_lazy(
             stack.add_titled(t.widget(), Some("system"), "󰍛 System");
             lazy_system.borrow_mut().replace(t);
             built.borrow_mut().insert("system".into());
+            built.borrow_mut().insert("system".into());
+        }
+        "lockscreen" => {
+            if let Some(old) = stack.child_by_name("lockscreen") {
+                stack.remove(&old);
+            }
+            placeholders.borrow_mut().3 = None;
+            let t = LockScreenTab::new(c);
+            stack.add_titled(t.widget(), Some("lockscreen"), "🔒 Lock Screen");
+            lazy_lockscreen.borrow_mut().replace(t);
+            built.borrow_mut().insert("lockscreen".into());
         }
         "scripts" => {
             // Not strictly lazy in same way but good to keep pattern if we want
@@ -220,14 +244,14 @@ fn schedule_build_tab(
     stack: Stack,
     config: Arc<Mutex<ColorConfig>>,
     index: usize,
-    placeholders: Rc<RefCell<(Option<GtkBox>, Option<GtkBox>, Option<GtkBox>)>>,
+    placeholders: Rc<RefCell<(Option<GtkBox>, Option<GtkBox>, Option<GtkBox>, Option<GtkBox>)>>,
 ) {
     let stack_clone = stack.clone();
     let config_clone = Arc::clone(&config);
     let placeholders_clone = Rc::clone(&placeholders);
     glib::source::idle_add_local_once(move || {
         build_one_tab(&stack_clone, &config_clone, index, &placeholders_clone);
-        if index + 1 < 10 {
+        if index + 1 < 13 {
             schedule_build_tab(stack_clone, config_clone, index + 1, placeholders_clone);
         } else {
             if let Some(loading) = stack_clone.child_by_name("loading") {
@@ -242,7 +266,7 @@ fn build_one_tab(
     stack: &Stack,
     config: &Arc<Mutex<ColorConfig>>,
     index: usize,
-    placeholders: &Rc<RefCell<(Option<GtkBox>, Option<GtkBox>, Option<GtkBox>)>>,
+    placeholders: &Rc<RefCell<(Option<GtkBox>, Option<GtkBox>, Option<GtkBox>, Option<GtkBox>)>>,
 ) {
     let c = Arc::clone(config);
     match index {
@@ -274,18 +298,31 @@ fn build_one_tab(
         }
         6 => {
             let t = QuickshellTab::new(c);
-            stack.add_titled(t.widget(), Some("quickshell"), "󰍜 QuickShell");
+            stack.add_titled(t.widget(), Some("quickshell"), "󰍜 General");
         }
         7 => {
+            let t = QuickshellSidebarTab::new(c);
+            stack.add_titled(t.widget(), Some("quickshell_sidebar"), "󰍜 Sidebar");
+        }
+        8 => {
+            let t = QuickshellDashboardTab::new(c);
+            stack.add_titled(t.widget(), Some("quickshell_dashboard"), "󰍜 Dashboard");
+        }
+        9 => {
             let t = ScriptsTab::new(c);
             stack.add_titled(t.widget(), Some("scripts"), "󰒓 Scripts");
         }
-        8 => {
+        10 => {
+            if let Some(ref ph) = placeholders.borrow().3 {
+                stack.add_titled(ph, Some("lockscreen"), "🔒 Lock Screen");
+            }
+        }
+        11 => {
             if let Some(ref ph) = placeholders.borrow().2 {
                 stack.add_titled(ph, Some("system"), "󰍛 System");
             }
         }
-        9 => {
+        12 => {
             let t = AboutTab::new(c);
             stack.add_titled(t.widget(), Some("about"), "󰋼 About");
         }
@@ -296,156 +333,176 @@ fn build_one_tab(
 fn create_custom_sidebar(stack: &Stack) -> GtkBox {
     // Sidebar: narrower min on small windows so content area gets more space
     let sidebar = GtkBox::new(Orientation::Vertical, 0);
-    sidebar.set_size_request(140, -1);
+    sidebar.set_size_request(160, -1); // Slightly wider for Polish text and icons
     sidebar.set_hexpand(false);
     sidebar.set_vexpand(true);
     sidebar.add_css_class("sidebar");
-    sidebar.set_margin_start(0);
-    sidebar.set_margin_end(0);
-    sidebar.set_margin_top(0);
-    sidebar.set_margin_bottom(0);
-
-    // Create ScrolledWindow for sidebar to enable scrolling in small windows
+    
     let scrolled = ScrolledWindow::new();
     scrolled.set_policy(gtk4::PolicyType::Never, gtk4::PolicyType::Automatic);
     scrolled.set_overlay_scrolling(false);
     scrolled.set_hexpand(true);
     scrolled.set_vexpand(true);
-    scrolled.set_min_content_width(-1);
-    scrolled.set_min_content_height(-1);
-    scrolled.set_propagate_natural_width(true);
-    scrolled.set_propagate_natural_height(true);
     
-    // Create ListBox for custom sidebar
     let list_box = ListBox::new();
     list_box.add_css_class("sidebar-listbox");
     list_box.set_selection_mode(gtk4::SelectionMode::Single);
+    list_box.set_activate_on_single_click(true);
     
-    // Helper function to create a sidebar row
-    let create_row = |name: &str, icon: &str, page_name: &str| -> (ListBoxRow, String) {
+    // Helper to create a row
+    let create_row = |name: &str, icon: &str, page_name: &str, is_sub: bool| -> ListBoxRow {
         let row = ListBoxRow::new();
         row.add_css_class("sidebar-row");
+        if is_sub {
+            row.add_css_class("sidebar-sub-row");
+        }
         
         let hbox = GtkBox::new(Orientation::Horizontal, 0);
-        hbox.set_margin_start(12);
+        hbox.set_margin_start(if is_sub { 24 } else { 12 });
         hbox.set_margin_end(12);
         hbox.set_margin_top(6);
         hbox.set_margin_bottom(6);
-        hbox.set_halign(gtk4::Align::Fill);
         
-        // Icon label (using emoji/icon font)
         let icon_label = Label::new(Some(icon));
         icon_label.add_css_class("sidebar-icon");
-        icon_label.set_margin_end(8); // Reduced spacing to 8px
+        icon_label.set_margin_end(8);
         hbox.append(&icon_label);
         
-        // Text label
         let label = Label::new(Some(name));
         label.set_halign(gtk4::Align::Start);
         label.set_hexpand(true);
         hbox.append(&label);
+
+        if !is_sub && page_name == "quickshell_group" {
+            let arrow = Label::new(Some("󰅂")); // Down arrow icon
+            arrow.add_css_class("sidebar-arrow");
+            hbox.append(&arrow);
+        }
         
         row.set_child(Some(&hbox));
-        
-        // Connect click to switch stack page
-        let stack_clone = stack.clone();
-        let page_name_str = page_name.to_string();
-        row.connect_activate(move |_| {
-            stack_clone.set_visible_child_name(&page_name_str);
-        });
-        
-        (row, page_name.to_string())
+        row
     };
-    
-    // Store page names in order (excluding separators)
-    let page_names = vec!["network", "bluetooth", "appearance", "audio", "blink", "notifications", "quickshell", "scripts", "system", "about"];
-    
-    // Add Network and Bluetooth at the top
-    let network_row = create_row("Network", "󰤨", "network").0;
-    list_box.append(&network_row);
-    
-    let bluetooth_row = create_row("Bluetooth", "󰂯", "bluetooth").0;
-    list_box.append(&bluetooth_row);
-    
-    // Add separator
-    let separator = Separator::new(Orientation::Horizontal);
-    separator.set_margin_top(8);
-    separator.set_margin_bottom(8);
-    separator.set_margin_start(12);
-    separator.set_margin_end(12);
-    let separator_row = ListBoxRow::new();
-    separator_row.add_css_class("sidebar-separator");
-    separator_row.set_selectable(false);
-    separator_row.set_activatable(false);
-    separator_row.set_child(Some(&separator));
-    list_box.append(&separator_row);
-    
-    // Add main tabs
-    let appearance_row = create_row("Appearance", "󰋺", "appearance").0;
-    list_box.append(&appearance_row);
-    
-    let audio_row = create_row("Audio", "󰕧", "audio").0;
-    list_box.append(&audio_row);
-    
-    let blink_row = create_row("Blink", "󰉋", "blink").0;
-    list_box.append(&blink_row);
-    
-    let notifications_row = create_row("Notifications", "󰂚", "notifications").0;
-    list_box.append(&notifications_row);
-    
-    let quickshell_row = create_row("QuickShell", "󰍜", "quickshell").0;
-    list_box.append(&quickshell_row);
 
-    let scripts_row = create_row("Scripts", "󰒓", "scripts").0;
-    list_box.append(&scripts_row);
+    // Add items
+    list_box.append(&create_row("Network", "󰤨", "network", false));
+    list_box.append(&create_row("Bluetooth", "󰂯", "bluetooth", false));
+
+    let sep1 = Separator::new(Orientation::Horizontal);
+    sep1.set_margin_top(8); sep1.set_margin_bottom(8); sep1.set_margin_start(12); sep1.set_margin_end(12);
+    let sep_row1 = ListBoxRow::new();
+    sep_row1.set_selectable(false); sep_row1.set_activatable(false);
+    sep_row1.set_child(Some(&sep1));
+    list_box.append(&sep_row1);
+
+    list_box.append(&create_row("Appearance", "󰋺", "appearance", false));
+    list_box.append(&create_row("Audio", "󰕧", "audio", false));
+    list_box.append(&create_row("Blink", "󰉋", "blink", false));
+    list_box.append(&create_row("Notifications", "󰂚", "notifications", false));
+
+    // Quickshell Group
+    let qs_head = create_row("QuickShell", "󰍜", "quickshell_group", false);
+    list_box.append(&qs_head);
+
+    let qs_gen = create_row("General", "󰇄", "quickshell", true);
+    let qs_side = create_row("Sidebar", "󰕮", "quickshell_sidebar", true);
+    let qs_dash = create_row("Dashboard", "󰕰", "quickshell_dashboard", true);
+    let qs_lock = create_row("Lock Screen", "🔒", "lockscreen", true);
+
+    list_box.append(&qs_gen);
+    list_box.append(&qs_side);
+    list_box.append(&qs_dash);
+    list_box.append(&qs_lock);
+
+    // Initial state: collapsed
+    let sub_rows = vec![qs_gen.clone(), qs_side.clone(), qs_dash.clone(), qs_lock.clone()];
+    for sub in &sub_rows {
+        sub.set_visible(false);
+    }
     
-    // Add separator before System and About
-    let separator2 = Separator::new(Orientation::Horizontal);
-    separator2.set_margin_top(8);
-    separator2.set_margin_bottom(8);
-    separator2.set_margin_start(12);
-    separator2.set_margin_end(12);
-    let separator_row2 = ListBoxRow::new();
-    separator_row2.add_css_class("sidebar-separator");
-    separator_row2.set_selectable(false);
-    separator_row2.set_activatable(false);
-    separator_row2.set_child(Some(&separator2));
-    list_box.append(&separator_row2);
-    
-    // Add System and About at the bottom
-    let system_row = create_row("System", "󰍛", "system").0;
-    list_box.append(&system_row);
-    
-    let about_row = create_row("About", "󰋼", "about").0;
-    list_box.append(&about_row);
-    
-    // Connect list box selection to stack using row index
+    unsafe { qs_head.set_data("expanded", false); } // Start collapsed
+
+    list_box.append(&create_row("Scripts", "󰒓", "scripts", false));
+
+    let sep2 = Separator::new(Orientation::Horizontal);
+    sep2.set_margin_top(8); sep2.set_margin_bottom(8); sep2.set_margin_start(12); sep2.set_margin_end(12);
+    let sep_row2 = ListBoxRow::new();
+    sep_row2.set_selectable(false); sep_row2.set_activatable(false);
+    sep_row2.set_child(Some(&sep2));
+    list_box.append(&sep_row2);
+
+    list_box.append(&create_row("System", "󰍛", "system", false));
+    list_box.append(&create_row("About", "󰋼", "about", false));
+
+    // Mapping indices to page names
+    let page_map = vec![
+        Some("network"),            // 0
+        Some("bluetooth"),          // 1
+        None,                       // 2 (Separator)
+        Some("appearance"),         // 3
+        Some("audio"),              // 4
+        Some("blink"),              // 5
+        Some("notifications"),      // 6
+        None,                       // 7 (QS Head)
+        Some("quickshell"),         // 8
+        Some("quickshell_sidebar"), // 9
+        Some("quickshell_dashboard"),// 10
+        Some("lockscreen"),         // 11
+        Some("scripts"),            // 12
+        None,                       // 13 (Separator)
+        Some("system"),             // 14
+        Some("about"),              // 15
+    ];
+
     let stack_clone = stack.clone();
-    let page_names_clone = page_names.clone();
-    list_box.connect_row_selected(move |_list_box, row| {
+    let sub_rows_for_sel = sub_rows.clone();
+    let qs_head_for_sel = qs_head.clone();
+    
+    list_box.connect_row_selected(move |_, row| {
         if let Some(row) = row {
-            // Get the row index directly (returns i32, not Option)
-            let row_index = row.index();
-            // Map index to page (skip separators at index 2 and index 8)
-            // Sidebar: 0=Network, 1=Bluetooth, 2=Separator, 3=Appearance, 4=Audio, 5=Blink, 6=Notifications, 7=QuickShell, 8=Separator, 9=System, 10=About
-            let page_idx = if row_index < 2 { 
-                row_index as usize
-            } else if row_index < 9 {
-                (row_index - 1) as usize
-            } else {
-                (row_index - 2) as usize
-            };
-            if page_idx < page_names_clone.len() {
-                stack_clone.set_visible_child_name(page_names_clone[page_idx]);
+            let idx = row.index() as usize;
+            
+            // Auto-collapse logic
+            let is_sub = idx >= 8 && idx <= 11;
+            let is_header = idx == 7;
+            let is_sep = idx == 2 || idx == 13;
+            
+            if is_header {
+                // Toggle expansion when header is clicked
+                let is_expanded = unsafe { qs_head_for_sel.data::<bool>("expanded").map(|b| *b.as_ref()).unwrap_or(false) };
+                let new_state = !is_expanded;
+                for sub in &sub_rows_for_sel {
+                    sub.set_visible(new_state);
+                }
+                unsafe { qs_head_for_sel.set_data("expanded", new_state); }
+                if let Some(hbox) = qs_head_for_sel.child().and_then(|c| c.downcast::<GtkBox>().ok()) {
+                    if let Some(arrow) = hbox.last_child().and_then(|c| c.downcast::<Label>().ok()) {
+                        arrow.set_text(if new_state { "󰅂" } else { "󰅃" });
+                    }
+                }
+            } else if !is_sub && !is_sep {
+                // Collapse QS group if other top-level items are selected
+                for sub in &sub_rows_for_sel {
+                    sub.set_visible(false);
+                }
+                unsafe { qs_head_for_sel.set_data("expanded", false); }
+                if let Some(hbox) = qs_head_for_sel.child().and_then(|c| c.downcast::<GtkBox>().ok()) {
+                    if let Some(arrow) = hbox.last_child().and_then(|c| c.downcast::<Label>().ok()) {
+                        arrow.set_text("󰅃");
+                    }
+                }
+            }
+
+            if idx < page_map.len() {
+                if let Some(page) = page_map[idx] {
+                    stack_clone.set_visible_child_name(page);
+                }
             }
         }
     });
-    
-    // Add ListBox to ScrolledWindow
+
+    // We can remove the old qs_head.connect_activate as we handled it in row_selected
+
     scrolled.set_child(Some(&list_box));
-    
-    // Add ScrolledWindow to sidebar
     sidebar.append(&scrolled);
-    
     sidebar
 }
