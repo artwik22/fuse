@@ -17,6 +17,8 @@ pub struct ColorConfig {
     pub color_preset: Option<String>,
     #[serde(rename = "sidebarPosition", skip_serializing_if = "Option::is_none")]
     pub sidebar_position: Option<String>,
+    #[serde(rename = "sidebarStyle", skip_serializing_if = "Option::is_none")]
+    pub sidebar_style: Option<String>,
     #[serde(rename = "notificationsEnabled", skip_serializing_if = "Option::is_none")]
     pub notifications_enabled: Option<bool>,
     #[serde(rename = "notificationSoundsEnabled", skip_serializing_if = "Option::is_none")]
@@ -92,6 +94,7 @@ impl Default for ColorConfig {
             last_wallpaper: None,
             color_preset: None,
             sidebar_position: Some("left".to_string()),
+            sidebar_style: Some("dots".to_string()),
             notifications_enabled: Some(true),
             notification_sounds_enabled: Some(true),
             sidebar_visible: Some(true),
@@ -487,6 +490,13 @@ impl ColorConfig {
         } else {
             cmd.arg("");
         }
+
+        // Argument 42: sidebarStyle ("dots", "lines")
+        if let Some(ref style) = self.sidebar_style {
+            cmd.arg(style);
+        } else {
+            cmd.arg("");
+        }
         
         let output = cmd.output()?;
         if !output.status.success() {
@@ -685,6 +695,10 @@ impl ColorConfig {
     
     pub fn set_lockscreen_network_enabled(&mut self, enabled: bool) {
         self.lockscreen_network_enabled = Some(enabled);
+    }
+
+    pub fn set_sidebar_style(&mut self, style: &str) {
+        self.sidebar_style = Some(style.to_string());
     }
 
     /// Set GTK_SCALE_FACTOR from ui_scale (75 -> 0.75, 100 -> 1.0, 125 -> 1.25). Call before gtk_init.

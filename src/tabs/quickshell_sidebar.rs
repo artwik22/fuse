@@ -45,6 +45,7 @@ impl QuickshellSidebarTab {
 
         sidebar_card.append(&create_sidebar_visible_row(Arc::clone(&config)));
         sidebar_card.append(&create_sidebar_position_row(Arc::clone(&config)));
+        sidebar_card.append(&create_sidebar_style_row(Arc::clone(&config)));
         sidebar_card.append(&create_sidepanel_content_row(Arc::clone(&config)));
         sidebar_card.append(&create_github_username_row(Arc::clone(&config)));
         
@@ -158,6 +159,66 @@ fn create_sidebar_position_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
     bind_click(&btn_right, "Right", config.clone(), Box::new(update_visuals.clone()));
 
     create_card_row("Position", box_)
+}
+
+fn create_sidebar_style_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
+    let box_ = GtkBox::new(Orientation::Horizontal, 6);
+    let current = config.lock().unwrap().sidebar_style.clone().unwrap_or_else(|| "dots".to_string());
+    
+    let is_dots = current == "dots";
+    
+    let btn_dots = Button::with_label("Dots");
+    let btn_lines = Button::with_label("Lines");
+    
+    if is_dots { btn_dots.add_css_class("suggested-action"); }
+    else { btn_lines.add_css_class("suggested-action"); }
+
+    let update = {
+        let d = btn_dots.clone();
+        let l = btn_lines.clone();
+        move |dots: bool| {
+            if dots {
+                d.add_css_class("suggested-action");
+                l.remove_css_class("suggested-action");
+            } else {
+                l.add_css_class("suggested-action");
+                d.remove_css_class("suggested-action");
+            }
+        }
+    };
+
+    {
+        let cfg_ref = config.clone();
+        let up = update.clone();
+        btn_dots.connect_clicked(move |_| {
+            let mut cfg = ColorConfig::load();
+            cfg.set_sidebar_style("dots");
+            if cfg.save().is_ok() {
+                *cfg_ref.lock().unwrap() = cfg.clone();
+                up(true);
+                schedule_notify_color_change_ms(200);
+            }
+        });
+    }
+
+    {
+        let cfg_ref = config.clone();
+        let up = update.clone();
+        btn_lines.connect_clicked(move |_| {
+            let mut cfg = ColorConfig::load();
+            cfg.set_sidebar_style("lines");
+            if cfg.save().is_ok() {
+                *cfg_ref.lock().unwrap() = cfg.clone();
+                up(false);
+                schedule_notify_color_change_ms(200);
+            }
+        });
+    }
+
+    box_.append(&btn_dots);
+    box_.append(&btn_lines);
+
+    create_card_row("Style", box_)
 }
 
 fn create_sidepanel_content_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
