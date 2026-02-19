@@ -44,7 +44,9 @@ impl QuickshellSidebarTab {
         sidebar_card.add_css_class("card");
 
         sidebar_card.append(&create_sidebar_visible_row(Arc::clone(&config)));
+        sidebar_card.append(&create_clock_blink_colon_row(Arc::clone(&config)));
         sidebar_card.append(&create_sidebar_position_row(Arc::clone(&config)));
+        sidebar_card.append(&create_sidebar_workspace_mode_row(Arc::clone(&config)));
         sidebar_card.append(&create_sidebar_style_row(Arc::clone(&config)));
         sidebar_card.append(&create_sidepanel_content_row(Arc::clone(&config)));
         sidebar_card.append(&create_github_username_row(Arc::clone(&config)));
@@ -98,6 +100,27 @@ fn create_sidebar_visible_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
     }
 
     create_card_row("Show Sidebar", switch)
+}
+
+fn create_clock_blink_colon_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
+    let switch = Switch::new();
+    let current = config.lock().unwrap().clock_blink_colon.unwrap_or(true);
+    switch.set_active(current);
+    switch.set_valign(gtk4::Align::Center);
+
+    {
+        let config = config.clone();
+        switch.connect_active_notify(move |s| {
+            let mut cfg = ColorConfig::load();
+            cfg.set_clock_blink_colon(s.is_active());
+            if cfg.save().is_ok() {
+                *config.lock().unwrap() = cfg.clone();
+                schedule_notify_color_change_ms(200);
+            }
+        });
+    }
+
+    create_card_row("Blink Clock Colon", switch)
 }
 
 fn create_sidebar_position_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
@@ -159,6 +182,64 @@ fn create_sidebar_position_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
     bind_click(&btn_right, "Right", config.clone(), Box::new(update_visuals.clone()));
 
     create_card_row("Position", box_)
+}
+
+fn create_sidebar_workspace_mode_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
+    let box_ = GtkBox::new(Orientation::Horizontal, 6);
+    let current = config.lock().unwrap().sidebar_workspace_mode.clone().unwrap_or_else(|| "top".to_string());
+    
+    let is_top = current == "top";
+    let is_center = current == "center";
+    let is_bottom = current == "bottom";
+    
+    let btn_top = Button::with_label("Top");
+    let btn_center = Button::with_label("Center");
+    let btn_bottom = Button::with_label("Bottom");
+    
+    if is_top { btn_top.add_css_class("suggested-action"); }
+    else if is_center { btn_center.add_css_class("suggested-action"); }
+    else { btn_bottom.add_css_class("suggested-action"); }
+
+    let update = {
+        let t = btn_top.clone();
+        let c = btn_center.clone();
+        let b = btn_bottom.clone();
+        move |mode: &str| {
+            t.remove_css_class("suggested-action");
+            c.remove_css_class("suggested-action");
+            b.remove_css_class("suggested-action");
+            match mode {
+                "top" => t.add_css_class("suggested-action"),
+                "center" => c.add_css_class("suggested-action"),
+                "bottom" => b.add_css_class("suggested-action"),
+                _ => {}
+            }
+        }
+    };
+
+    let connect_btn = |btn: &Button, mode: &'static str| {
+        let cfg_ref = config.clone();
+        let up = update.clone();
+        btn.connect_clicked(move |_| {
+            let mut cfg = ColorConfig::load();
+            cfg.set_sidebar_workspace_mode(mode);
+            if cfg.save().is_ok() {
+                *cfg_ref.lock().unwrap() = cfg.clone();
+                up(mode);
+                schedule_notify_color_change_ms(200);
+            }
+        });
+    };
+
+    connect_btn(&btn_top, "top");
+    connect_btn(&btn_center, "center");
+    connect_btn(&btn_bottom, "bottom");
+
+    box_.append(&btn_top);
+    box_.append(&btn_center);
+    box_.append(&btn_bottom);
+
+    create_card_row("Workspace Pos", box_)
 }
 
 fn create_sidebar_style_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {

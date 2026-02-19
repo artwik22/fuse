@@ -81,6 +81,10 @@ pub struct ColorConfig {
     pub lockscreen_calendar_enabled: Option<bool>,
     #[serde(rename = "lockscreenNetworkEnabled", skip_serializing_if = "Option::is_none")]
     pub lockscreen_network_enabled: Option<bool>,
+    #[serde(rename = "clockBlinkColon", skip_serializing_if = "Option::is_none")]
+    pub clock_blink_colon: Option<bool>,
+    #[serde(rename = "sidebarWorkspaceMode", skip_serializing_if = "Option::is_none")]
+    pub sidebar_workspace_mode: Option<String>,
 }
 
 impl Default for ColorConfig {
@@ -127,6 +131,8 @@ impl Default for ColorConfig {
             lockscreen_battery_enabled: Some(true),
             lockscreen_calendar_enabled: Some(true),
             lockscreen_network_enabled: Some(false),
+            clock_blink_colon: Some(true),
+            sidebar_workspace_mode: Some("top".to_string()),
         }
     }
 }
@@ -491,9 +497,22 @@ impl ColorConfig {
             cmd.arg("");
         }
 
-        // Argument 42: sidebarStyle ("dots", "lines")
         if let Some(ref style) = self.sidebar_style {
             cmd.arg(style);
+        } else {
+            cmd.arg("");
+        }
+
+        // Argument 43: clockBlinkColon (true/false)
+        if let Some(enabled) = self.clock_blink_colon {
+            cmd.arg(if enabled { "true" } else { "false" });
+        } else {
+            cmd.arg("");
+        }
+
+        // Argument 44: sidebarWorkspaceMode ("top", "center", "bottom")
+        if let Some(ref mode) = self.sidebar_workspace_mode {
+            cmd.arg(mode);
         } else {
             cmd.arg("");
         }
@@ -699,6 +718,14 @@ impl ColorConfig {
 
     pub fn set_sidebar_style(&mut self, style: &str) {
         self.sidebar_style = Some(style.to_string());
+    }
+
+    pub fn set_clock_blink_colon(&mut self, enabled: bool) {
+        self.clock_blink_colon = Some(enabled);
+    }
+
+    pub fn set_sidebar_workspace_mode(&mut self, mode: &str) {
+        self.sidebar_workspace_mode = Some(mode.to_string());
     }
 
     /// Set GTK_SCALE_FACTOR from ui_scale (75 -> 0.75, 100 -> 1.0, 125 -> 1.25). Call before gtk_init.
