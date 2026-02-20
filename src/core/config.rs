@@ -85,6 +85,8 @@ pub struct ColorConfig {
     pub clock_blink_colon: Option<bool>,
     #[serde(rename = "sidebarWorkspaceMode", skip_serializing_if = "Option::is_none")]
     pub sidebar_workspace_mode: Option<String>,
+    #[serde(rename = "dynamicSidebarBackground", skip_serializing_if = "Option::is_none")]
+    pub dynamic_sidebar_background: Option<bool>,
 }
 
 impl Default for ColorConfig {
@@ -133,6 +135,7 @@ impl Default for ColorConfig {
             lockscreen_network_enabled: Some(false),
             clock_blink_colon: Some(true),
             sidebar_workspace_mode: Some("top".to_string()),
+            dynamic_sidebar_background: Some(false),
         }
     }
 }
@@ -516,6 +519,13 @@ impl ColorConfig {
         } else {
             cmd.arg("");
         }
+
+        // Argument 45: dynamicSidebarBackground (true/false)
+        if let Some(enabled) = self.dynamic_sidebar_background {
+            cmd.arg(if enabled { "true" } else { "false" });
+        } else {
+            cmd.arg("");
+        }
         
         let output = cmd.output()?;
         if !output.status.success() {
@@ -726,6 +736,10 @@ impl ColorConfig {
 
     pub fn set_sidebar_workspace_mode(&mut self, mode: &str) {
         self.sidebar_workspace_mode = Some(mode.to_string());
+    }
+
+    pub fn set_dynamic_sidebar_background(&mut self, enabled: bool) {
+        self.dynamic_sidebar_background = Some(enabled);
     }
 
     /// Set GTK_SCALE_FACTOR from ui_scale (75 -> 0.75, 100 -> 1.0, 125 -> 1.25). Call before gtk_init.

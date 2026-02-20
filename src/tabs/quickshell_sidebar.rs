@@ -48,6 +48,7 @@ impl QuickshellSidebarTab {
         sidebar_card.append(&create_sidebar_position_row(Arc::clone(&config)));
         sidebar_card.append(&create_sidebar_workspace_mode_row(Arc::clone(&config)));
         sidebar_card.append(&create_sidebar_style_row(Arc::clone(&config)));
+        sidebar_card.append(&create_dynamic_sidebar_background_row(Arc::clone(&config)));
         sidebar_card.append(&create_sidepanel_content_row(Arc::clone(&config)));
         sidebar_card.append(&create_github_username_row(Arc::clone(&config)));
         
@@ -190,7 +191,7 @@ fn create_sidebar_workspace_mode_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox 
     
     let is_top = current == "top";
     let is_center = current == "center";
-    let is_bottom = current == "bottom";
+    let _is_bottom = current == "bottom";
     
     let btn_top = Button::with_label("Top");
     let btn_center = Button::with_label("Center");
@@ -380,4 +381,25 @@ fn create_github_username_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
     });
 
     create_card_row("GitHub User", entry)
+}
+
+fn create_dynamic_sidebar_background_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
+    let switch = Switch::new();
+    let current = config.lock().unwrap().dynamic_sidebar_background.unwrap_or(false);
+    switch.set_active(current);
+    switch.set_valign(gtk4::Align::Center);
+
+    {
+        let config = config.clone();
+        switch.connect_active_notify(move |s| {
+            let mut cfg = ColorConfig::load();
+            cfg.set_dynamic_sidebar_background(s.is_active());
+            if cfg.save().is_ok() {
+                *config.lock().unwrap() = cfg.clone();
+                schedule_notify_color_change_ms(200);
+            }
+        });
+    }
+
+    create_card_row("Dynamic Background", switch)
 }
