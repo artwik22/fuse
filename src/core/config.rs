@@ -87,6 +87,10 @@ pub struct ColorConfig {
     pub sidebar_workspace_mode: Option<String>,
     #[serde(rename = "dynamicSidebarBackground", skip_serializing_if = "Option::is_none")]
     pub dynamic_sidebar_background: Option<bool>,
+    #[serde(rename = "screensaverWidgetsEnabled", skip_serializing_if = "Option::is_none")]
+    pub screensaver_widgets_enabled: Option<bool>,
+    #[serde(rename = "sidebarBatteryEnabled", skip_serializing_if = "Option::is_none")]
+    pub sidebar_battery_enabled: Option<bool>,
 }
 
 impl Default for ColorConfig {
@@ -136,6 +140,8 @@ impl Default for ColorConfig {
             clock_blink_colon: Some(true),
             sidebar_workspace_mode: Some("top".to_string()),
             dynamic_sidebar_background: Some(false),
+            screensaver_widgets_enabled: Some(true),
+            sidebar_battery_enabled: Some(true),
         }
     }
 }
@@ -526,6 +532,20 @@ impl ColorConfig {
         } else {
             cmd.arg("");
         }
+
+        // Argument 46: screensaverWidgetsEnabled (true/false)
+        if let Some(enabled) = self.screensaver_widgets_enabled {
+            cmd.arg(if enabled { "true" } else { "false" });
+        } else {
+            cmd.arg("");
+        }
+
+        // Argument 47: sidebarBatteryEnabled (true/false)
+        if let Some(enabled) = self.sidebar_battery_enabled {
+            cmd.arg(if enabled { "true" } else { "false" });
+        } else {
+            cmd.arg("");
+        }
         
         let output = cmd.output()?;
         if !output.status.success() {
@@ -740,6 +760,14 @@ impl ColorConfig {
 
     pub fn set_dynamic_sidebar_background(&mut self, enabled: bool) {
         self.dynamic_sidebar_background = Some(enabled);
+    }
+
+    pub fn set_screensaver_widgets_enabled(&mut self, enabled: bool) {
+        self.screensaver_widgets_enabled = Some(enabled);
+    }
+
+    pub fn set_sidebar_battery_enabled(&mut self, enabled: bool) {
+        self.sidebar_battery_enabled = Some(enabled);
     }
 
     /// Set GTK_SCALE_FACTOR from ui_scale (75 -> 0.75, 100 -> 1.0, 125 -> 1.25). Call before gtk_init.

@@ -114,6 +114,21 @@ impl LockScreenTab {
         );
         input_group.add(&row_network);
 
+        // 7. Screensaver Widgets
+        let screensaver_widgets_config = Arc::clone(&config);
+        let row_screensaver_widgets = create_switch_row(
+            "Screensaver Widgets",
+            "Show widgets when screensaver is active",
+            current_config.screensaver_widgets_enabled.unwrap_or(true),
+            move |active| {
+                if let Ok(mut c) = screensaver_widgets_config.lock() {
+                    c.set_screensaver_widgets_enabled(active);
+                    let _ = c.save();
+                }
+            }
+        );
+        input_group.add(&row_screensaver_widgets);
+
         main_box.append(&input_group);
         scrolled.set_child(Some(&main_box));
 
