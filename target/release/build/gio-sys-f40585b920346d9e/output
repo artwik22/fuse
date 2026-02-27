@@ -1,4 +1,4 @@
-cargo:rerun-if-changed=/home/iartwik/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gio-sys-0.20.10/Cargo.toml
+cargo:rerun-if-changed=/root/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/gio-sys-0.20.10/Cargo.toml
 cargo:rerun-if-env-changed=GIO_2.0_NO_PKG_CONFIG
 cargo:rerun-if-env-changed=PKG_CONFIG_x86_64-unknown-linux-gnu
 cargo:rerun-if-env-changed=PKG_CONFIG_x86_64_unknown_linux_gnu
