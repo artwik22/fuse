@@ -91,6 +91,8 @@ pub struct ColorConfig {
     pub screensaver_widgets_enabled: Option<bool>,
     #[serde(rename = "sidebarBatteryEnabled", skip_serializing_if = "Option::is_none")]
     pub sidebar_battery_enabled: Option<bool>,
+    #[serde(rename = "scriptsAutostartLockscreen", skip_serializing_if = "Option::is_none")]
+    pub scripts_autostart_lockscreen: Option<bool>,
 }
 
 impl Default for ColorConfig {
@@ -142,6 +144,7 @@ impl Default for ColorConfig {
             dynamic_sidebar_background: Some(false),
             screensaver_widgets_enabled: Some(true),
             sidebar_battery_enabled: Some(true),
+            scripts_autostart_lockscreen: Some(true),
         }
     }
 }
@@ -546,6 +549,13 @@ impl ColorConfig {
         } else {
             cmd.arg("");
         }
+
+        // Argument 48: scriptsAutostartLockscreen (true/false)
+        if let Some(enabled) = self.scripts_autostart_lockscreen {
+            cmd.arg(if enabled { "true" } else { "false" });
+        } else {
+            cmd.arg("");
+        }
         
         let output = cmd.output()?;
         if !output.status.success() {
@@ -768,6 +778,10 @@ impl ColorConfig {
 
     pub fn set_sidebar_battery_enabled(&mut self, enabled: bool) {
         self.sidebar_battery_enabled = Some(enabled);
+    }
+
+    pub fn set_scripts_autostart_lockscreen(&mut self, enabled: bool) {
+        self.scripts_autostart_lockscreen = Some(enabled);
     }
 
     /// Set GTK_SCALE_FACTOR from ui_scale (75 -> 0.75, 100 -> 1.0, 125 -> 1.25). Call before gtk_init.

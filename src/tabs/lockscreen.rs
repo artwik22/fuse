@@ -30,12 +30,31 @@ impl LockScreenTab {
         title.set_margin_bottom(24);
         main_box.append(&title);
 
+        let current_config = config.lock().unwrap();
+
+        let general_group = libadwaita::PreferencesGroup::builder()
+            .title("General")
+            .build();
+
+        let autostart_config = Arc::clone(&config);
+        let row_autostart = create_switch_row(
+            "Show Lock Screen on Startup",
+            "Automatically show lock screen when opening the shell",
+            current_config.scripts_autostart_lockscreen.unwrap_or(true),
+            move |active| {
+                if let Ok(mut c) = autostart_config.lock() {
+                    c.set_scripts_autostart_lockscreen(active);
+                    let _ = c.save();
+                }
+            }
+        );
+        general_group.add(&row_autostart);
+        main_box.append(&general_group);
+
         let input_group = libadwaita::PreferencesGroup::builder()
             .title("Widgets")
             .description("Manage widgets displayed on the lock screen.")
             .build();
-
-        let current_config = config.lock().unwrap();
 
         // 1. Media Player
         let media_config = Arc::clone(&config);
