@@ -340,7 +340,6 @@ fn create_weather_location_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
             let query_clone = query.clone();
 
             let new_id = gtk4::glib::timeout_add_local(std::time::Duration::from_millis(500), move || {
-                let query = query_clone.clone();
                 let listbox = listbox.clone();
                 let popover = popover.clone();
                 let _config = config.clone();
@@ -352,6 +351,7 @@ fn create_weather_location_row(config: Arc<Mutex<ColorConfig>>) -> GtkBox {
 
                 let query = query_clone.clone();
                 let url = format!("https://nominatim.openstreetmap.org/search?q={}&format=json&limit=5", query);
+                #[allow(deprecated)]
                 let (sender, receiver) = gtk4::glib::MainContext::channel::<Vec<String>>(gtk4::glib::Priority::default());
                 
                 let listbox_clone = listbox.clone();

@@ -87,6 +87,8 @@ pub struct ColorConfig {
     pub sidebar_workspace_mode: Option<String>,
     #[serde(rename = "dynamicSidebarBackground", skip_serializing_if = "Option::is_none")]
     pub dynamic_sidebar_background: Option<bool>,
+    #[serde(rename = "micaSidebarBackground", skip_serializing_if = "Option::is_none")]
+    pub mica_sidebar_background: Option<bool>,
     #[serde(rename = "screensaverWidgetsEnabled", skip_serializing_if = "Option::is_none")]
     pub screensaver_widgets_enabled: Option<bool>,
     #[serde(rename = "sidebarBatteryEnabled", skip_serializing_if = "Option::is_none")]
@@ -142,6 +144,7 @@ impl Default for ColorConfig {
             clock_blink_colon: Some(true),
             sidebar_workspace_mode: Some("top".to_string()),
             dynamic_sidebar_background: Some(false),
+            mica_sidebar_background: Some(false),
             screensaver_widgets_enabled: Some(true),
             sidebar_battery_enabled: Some(true),
             scripts_autostart_lockscreen: Some(true),
@@ -557,6 +560,13 @@ impl ColorConfig {
             cmd.arg("");
         }
         
+        // Argument 49: micaSidebarBackground (true/false)
+        if let Some(enabled) = self.mica_sidebar_background {
+            cmd.arg(if enabled { "true" } else { "false" });
+        } else {
+            cmd.arg("");
+        }
+        
         let output = cmd.output()?;
         if !output.status.success() {
             // Fallback to direct save on error
@@ -770,6 +780,10 @@ impl ColorConfig {
 
     pub fn set_dynamic_sidebar_background(&mut self, enabled: bool) {
         self.dynamic_sidebar_background = Some(enabled);
+    }
+    
+    pub fn set_mica_sidebar_background(&mut self, enabled: bool) {
+        self.mica_sidebar_background = Some(enabled);
     }
 
     pub fn set_screensaver_widgets_enabled(&mut self, enabled: bool) {
